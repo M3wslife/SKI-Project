@@ -1,0 +1,134 @@
+import requests
+import sqlite3
+import json
+import time
+from datetime import datetime
+
+# Configuration
+WFM_URL = 'https://open-api.dataslot.app/search/wfm/v1/SKi'
+DB_PATH = 'dashboard/data/local.db'
+
+# Time Range: 2026-01-01 to 2026-02-28
+# Start: 1767225600000 (2026-01-01 00:00:00 UTC)
+# End: 1772332800000 (2026-03-01 00:00:00 UTC)
+START_TIMESTAMP = 1767225600000
+END_TIMESTAMP = 1772332800000
+
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    with open('schema.sql', 'r', encoding='utf-8') as f:
+        conn.executescript(f.read())
+    conn.close()
+    print(f"Database initialized at {DB_PATH}")
+
+def process_hits(hits, conn):
+    cursor = conn.cursor()
+    for hit in hits:
+        h_id = hit.get('id')
+        detail = hit.get('detail', {})
+        order = detail.get('order', {})
+        customer = detail.get('customerInfo', {})
+        peak = detail.get('peakInfo', {})
+        
+        # Insert Invoice
+        cursor.execute("""
+            INSERT OR REPLACE INTO invoices (
+                id, task_number, workflow_id, status, company, mid, 
+                timestamp, updated_timestamp, net_amount, vat_amount, 
+                pre_tax_amount, shipping_amount, paid_amount, remaining_amount,
+                customer_name, customer_code, peak_id, peak_code, assignee_name
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            h_id,
+            hit.get('taskNumber'),
+            hit.get('workflowId'),
+            hit.get('status'),
+            hit.get('company'),
+            hit.get('mid'),
+            hit.get('timestamp'),
+            hit.get('updatedTimestamp'),
+            order.get('netAmount'),
+            order.get('vatAmount'),
+            order.get('preTaxAmount'),
+            order.get('shippingAmount'),
+            order.get('paidAmount'),
+            order.get('remainingAmount'),
+            customer.get('name'),
+            customer.get('code'),
+            peak.get('id'),
+            peak.get('code'),
+            (detail.get('assignees') or [{}])[0].get('employeeNumber') if detail.get('assignees') else None
+        ))
+        
+        # Insert Items
+        items = order.get('items', [])
+        for item in items:
+            cursor.execute("""
+                INSERT INTO invoice_items (
+                    item_id, invoice_id, sku, name, quantity, unit,
+                    price, net_amount, pre_tax_amount, vat_amount,
+                    discount_value, discount_unit
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                item.get('itemId'),
+                h_id,
+                item.get('sku'),
+                item.get('name'),
+                item.get('quantity'),
+                item.get('unit'),
+                item.get('price'),
+                item.get('netAmount'),
+                item.get('preTaxAmount'),
+                item.get('vatAmount'),
+                item.get('discount', {}).get('value'),
+                item.get('discount', {}).get('unit')
+            ))
+    conn.commit()
+
+def fetch_data():
+    conn = sqlite3.connect(DB_PATH)
+    page = 1
+    hits_per_page = 100
+    total_fetched = 0
+    
+    while True:
+        print(f"Fetching page {page}...")
+        payload = {
+            "hitsPerPage": hits_per_page,
+            "page": page,
+            "filter": [
+                "workflowId = INVOICE",
+                "type = TASK",
+                f"timestamp >= {START_TIMESTAMP}",
+                f"timestamp < {END_TIMESTAMP}"
+            ],
+            "sort": ["timestamp:asc"]
+        }
+        
+        response = requests.post(WFM_URL, json=payload, headers={'Content-Type': 'application/json', 'Accept': 'application/json'})
+        if response.status_code != 200:
+            print(f"Error {response.status_code}: {response.text}")
+            break
+            
+        data = response.json()
+        hits = data.get('hits', [])
+        if not hits:
+            break
+            
+        process_hits(hits, conn)
+        total_fetched += len(hits)
+        print(f"  Processed {len(hits)} hits (Total: {total_fetched})")
+        
+        total_pages = data.get('totalPages', 0)
+        if page >= total_pages:
+            break
+            
+        page += 1
+        time.sleep(0.5) # Gentle rate limiting
+        
+    conn.close()
+    print(f"Data fetch complete. Total records: {total_fetched}")
+
+if __name__ == "__main__":
+    init_db()
+    fetch_data()
