@@ -1,0 +1,34 @@
+{
+  "header_revenue_2026": 21637253.597572897,
+  "item_revenue_2026_joined": 10916690.823466523,
+  "item_revenue_raw_all_time": 11033906.229766523,
+  "invoices_without_items_2026": 0,
+  "invoices_with_items_2026": 7175,
+  "mismatched_invoices_sample": [
+    {
+      "id": "01JE2PF8HTMJH2H5BHV4QTCREE",
+      "header_amount": 5247.52,
+      "items_amount": 3775.7477
+    },
+    {
+      "id": "01KDY6DDHXM1YJFHK5QEYB2BYP",
+      "header_amount": 405005.0654205607,
+      "items_amount": 8450.654205607476
+    },
+    {
+      "id": "01KDY6DDZP04W7WPZHJ7F7NTA8",
+      "header_amount": 700654.214953271,
+      "items_amount": 8106.542056074766
+    },
+    {
+      "id": "01KDY6DEBYHPM5KB418ZNJWJSZ",
+      "header_amount": 603980.8598130841,
+      "items_amount": 2467.2897196261683
+    },
+    {
+      "id": "01KDY6DERYASZT2H63Y4N5MX91",
+      "header_amount": 1011552.2710280373,
+      "items_amount": 29650.467289719625
+    }
+  ]
+}

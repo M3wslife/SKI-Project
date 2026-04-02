@@ -1,0 +1,3 @@
+inventory_products         invoice_items            
+inventory_transfer_logs    invoices                 
+inventory_warehouse_stock

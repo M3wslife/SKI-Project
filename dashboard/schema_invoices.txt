@@ -1,0 +1,23 @@
+CREATE TABLE invoices (
+    id TEXT PRIMARY KEY,
+    task_number TEXT,
+    workflow_id TEXT,
+    status TEXT,
+    company TEXT,
+    mid TEXT,
+    timestamp INTEGER,
+    updated_timestamp INTEGER,
+    net_amount REAL,
+    vat_amount REAL,
+    pre_tax_amount REAL,
+    shipping_amount REAL,
+    paid_amount REAL,
+    remaining_amount REAL,
+    customer_name TEXT,
+    customer_code TEXT,
+    peak_id TEXT,
+    peak_code TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+, assignee_name TEXT);
+CREATE INDEX idx_invoice_timestamp ON invoices(timestamp);
+CREATE INDEX idx_invoice_task_number ON invoices(task_number);
