@@ -1,0 +1,197 @@
+
+> dashboard@0.1.0 build
+> next build
+
+ΓÜá Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\autob\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Users\autob\OneDrive\Desktop\SKi SKC\SKI Project\dashboard\package-lock.json
+
+Γû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 8 errors:
+./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/layout.tsx:3:1
+Module not found: Can't resolve '@/components/layout/Sidebar'
+  1 | import './globals.css';
+  2 | import type { Metadata } from 'next';
+> 3 | import Sidebar from '@/components/layout/Sidebar';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { SidebarProvider } from '@/components/layout/SidebarContext';
+  5 |
+  6 | export const metadata: Metadata = {
+
+
+
+Import trace:
+  App Route:
+    ./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/layout.tsx
+    ./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/diag/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/layout.tsx:4:1
+Module not found: Can't resolve '@/components/layout/SidebarContext'
+  2 | import type { Metadata } from 'next';
+  3 | import Sidebar from '@/components/layout/Sidebar';
+> 4 | import { SidebarProvider } from '@/components/layout/SidebarContext';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 |
+  6 | export const metadata: Metadata = {
+  7 |   title: 'SKI Analytics Dashboard',
+
+
+
+Import trace:
+  App Route:
+    ./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/layout.tsx
+    ./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/diag/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/profit-and-loss/page.tsx:7:1
+Module not found: Can't resolve '@/components/layout/SidebarContext'
+   5 | import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, Sector, ComposedChart, Line, Bar, BarChart, XAxis, YAxis, CartesianGrid, Treemap } from 'recharts';
+   6 | import { Download, ChevronLeft, ChevronRight, RefreshCw, Users, Search, ShoppingBag, BarChart3 } from 'lucide-react';
+>  7 | import { useSidebar } from '@/components/layout/SidebarContext';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 |
+   9 | function fmt(n: number) {
+  10 |   return `α╕┐${(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+
+
+Import traces:
+  App Route:
+    ./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/profit-and-loss/page.tsx
+    ./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/diag/route.ts
+
+  Client Component Browser:
+    ./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/profit-and-loss/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/profit-and-loss/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/profit-and-loss/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/profit-and-loss/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/inventory/route.ts:2:1
+Module not found: Can't resolve '@/lib/db'
+  1 | import { NextRequest, NextResponse } from 'next/server';
+> 2 | import { getDb } from '@/lib/db';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 |
+  4 | export const revalidate = 3600; // ≡ƒöÆ PROTECT TURSO QUOTA: Cache API response for 1 hour on Vercel
+  5 |
+
+
+
+Import trace:
+  App Route:
+    ./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/inventory/route.ts
+    ./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/diag/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/overview/route.ts:2:1
+Module not found: Can't resolve '@/lib/db'
+  1 | import { NextResponse } from 'next/server';
+> 2 | import { getDb } from '@/lib/db';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 |
+  4 | export const revalidate = 3600; // ≡ƒöÆ PROTECT TURSO QUOTA: Cache API response for 1 hour on Vercel
+  5 |
+
+
+
+Import trace:
+  App Route:
+    ./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/overview/route.ts
+    ./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/diag/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/pl/route.ts:2:1
+Module not found: Can't resolve '@/lib/db'
+  1 | import { NextRequest, NextResponse } from 'next/server';
+> 2 | import { getDb } from '@/lib/db';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 |
+  4 | export const revalidate = 3600; // ≡ƒöÆ PROTECT TURSO QUOTA: Cache API response for 1 hour on Vercel
+  5 |
+
+
+
+Import trace:
+  App Route:
+    ./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/pl/route.ts
+    ./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/diag/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/products/route.ts:2:1
+Module not found: Can't resolve '@/lib/db'
+  1 | import { NextRequest, NextResponse } from 'next/server';
+> 2 | import { getDb } from '@/lib/db';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 |
+  4 | export const revalidate = 3600; // ≡ƒöÆ PROTECT TURSO QUOTA: Cache API response for 1 hour on Vercel
+  5 |
+
+
+
+Import trace:
+  App Route:
+    ./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/products/route.ts
+    ./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/diag/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/sales/route.ts:2:1
+Module not found: Can't resolve '@/lib/db'
+  1 | import { NextRequest, NextResponse } from 'next/server';
+> 2 | import { getDb } from '@/lib/db';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 |
+  4 | export const revalidate = 3600; // ≡ƒöÆ PROTECT TURSO QUOTA: Cache API response for 1 hour on Vercel
+  5 |
+
+
+
+Import trace:
+  App Route:
+    ./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/sales/route.ts
+    ./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/diag/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> (./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/layout.tsx:3:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/layout.tsx:4:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/profit-and-loss/page.tsx:7:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/inventory/route.ts:2:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/overview/route.ts:2:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/pl/route.ts:2:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/products/route.ts:2:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./OneDrive/Desktop/SKi SKC/SKI Project/dashboard/app/api/sales/route.ts:2:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)

@@ -1,0 +1,92 @@
+WARN! Build not running on Vercel. System environment variables will not be available.
+WARNING: You should not upload the `.next` directory.
+Installing dependencies...
+
+up to date in 982ms
+
+151 packages are looking for funding
+  run `npm fund` for details
+Detected Next.js version: 16.1.6
+Running "npm run build"
+
+> dashboard@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 2.7s
+  Running TypeScript ...
+  Collecting page data using 15 workers ...
+≡ƒöì Searching for database in C:\Users\autob\OneDrive\Desktop\SKi SKC\SKI Project\dashboard...
+Γ£à Database found: C:\Users\autob\OneDrive\Desktop\SKi SKC\SKI Project\dashboard\public\local.db (28.59 MB)
+≡ƒöì Searching for database in C:\Users\autob\OneDrive\Desktop\SKi SKC\SKI Project\dashboard...
+≡ƒöì Searching for database in C:\Users\autob\OneDrive\Desktop\SKi SKC\SKI Project\dashboard...
+Γ£à Database found: C:\Users\autob\OneDrive\Desktop\SKi SKC\SKI Project\dashboard\public\local.db (28.59 MB)
+Γ£à Database found: C:\Users\autob\OneDrive\Desktop\SKi SKC\SKI Project\dashboard\public\local.db (28.59 MB)
+≡ƒöì Searching for database in C:\Users\autob\OneDrive\Desktop\SKi SKC\SKI Project\dashboard...
+Γ£à Database found: C:\Users\autob\OneDrive\Desktop\SKi SKC\SKI Project\dashboard\public\local.db (28.59 MB)
+≡ƒöì Searching for database in C:\Users\autob\OneDrive\Desktop\SKi SKC\SKI Project\dashboard...
+Γ£à Database found: C:\Users\autob\OneDrive\Desktop\SKi SKC\SKI Project\dashboard\public\local.db (28.59 MB)
+  Generating static pages using 15 workers (0/7) ...
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+  Generating static pages using 15 workers (1/7) 
+  Generating static pages using 15 workers (3/7) 
+  Generating static pages using 15 workers (5/7) 
+Γ£ô Generating static pages using 15 workers (7/7) in 710.8ms
+  Finalizing page optimization ...
+
+Route (app)
+Γöî Γùï /
+Γö£ Γùï /_not-found
+Γö£ ╞Æ /api/diag
+Γö£ ╞Æ /api/inventory
+Γö£ ╞Æ /api/overview
+Γö£ ╞Æ /api/pl
+Γö£ ╞Æ /api/products
+Γö£ ╞Æ /api/sales
+Γö£ Γùï /inventory
+Γö£ Γùï /products
+Γö£ Γùï /profit-and-loss
+Γöö Γùï /sales
+
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+
+Tracing initial Next.js server files due to missing build trace: 7.073s
+Traced Next.js server files in: 7.534s
+Tracing entries due to missing build traces:
+[
+  "C:/Users/autob/OneDrive/Desktop/SKi SKC/SKI Project/dashboard/.next/server/app/_global-error/page.js",
+  "C:/Users/autob/OneDrive/Desktop/SKi SKC/SKI Project/dashboard/.next/server/app/_not-found/page.js",
+  "C:/Users/autob/OneDrive/Desktop/SKi SKC/SKI Project/dashboard/.next/server/app/inventory/page.js",
+  "C:/Users/autob/OneDrive/Desktop/SKi SKC/SKI Project/dashboard/.next/server/app/products/page.js",
+  "C:/Users/autob/OneDrive/Desktop/SKi SKC/SKI Project/dashboard/.next/server/app/profit-and-loss/page.js",
+  "C:/Users/autob/OneDrive/Desktop/SKi SKC/SKI Project/dashboard/.next/server/app/sales/page.js",
+  "C:/Users/autob/OneDrive/Desktop/SKi SKC/SKI Project/dashboard/.next/server/app/api/diag/route.js",
+  "C:/Users/autob/OneDrive/Desktop/SKi SKC/SKI Project/dashboard/.next/server/app/api/inventory/route.js",
+  "C:/Users/autob/OneDrive/Desktop/SKi SKC/SKI Project/dashboard/.next/server/app/api/overview/route.js",
+  "C:/Users/autob/OneDrive/Desktop/SKi SKC/SKI Project/dashboard/.next/server/app/api/pl/route.js",
+  "C:/Users/autob/OneDrive/Desktop/SKi SKC/SKI Project/dashboard/.next/server/app/api/products/route.js",
+  "C:/Users/autob/OneDrive/Desktop/SKi SKC/SKI Project/dashboard/.next/server/app/api/sales/route.js"
+]: 24.448ms
+Created all serverless functions in: 140.545ms
+Collected static files (public/, static/, .next/static): 2.998ms
+Error: EPERM: operation not permitted, symlink 'diag.func' -> 'C:\Users\autob\OneDrive\Desktop\SKi SKC\SKI Project\dashboard\.vercel\output\functions\api\inventory.func'

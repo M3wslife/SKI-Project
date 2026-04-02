@@ -1,7 +1,2 @@
 {
-  "functions": {
-    "app/api/**/*": {
-      "includeFiles": "public/local.db"
-    }
-  }
 }
