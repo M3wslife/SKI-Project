@@ -1,0 +1,11 @@
+invoice_items|table
+sqlite_sequence|table
+inventory_products|table
+sqlite_autoindex_inventory_products_1|index
+sqlite_autoindex_inventory_products_2|index
+inventory_warehouse_stock|table
+inventory_transfer_logs|table
+idx_item_sku|index
+idx_item_invoice_id|index
+idx_inventory_sku|index
+idx_inventory_product_id|index

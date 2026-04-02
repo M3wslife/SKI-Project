@@ -1,89 +1,118 @@
-import Database from 'better-sqlite3';
 import { createClient } from '@libsql/client';
+import Database from 'better-sqlite3';
 import path from 'path';
 
-// 1. Config (Edit these if not using .env)
-const LOCAL_DB = path.join(process.cwd(), '..', 'local.db');
+const LOCAL_DB = path.join(process.cwd(), 'data', 'local.db');
 const TURSO_URL = process.env.TURSO_DATABASE_URL;
 const TURSO_TOKEN = process.env.TURSO_AUTH_TOKEN;
 
 if (!TURSO_URL || !TURSO_TOKEN) {
-  console.error('❌ Error: Missing TURSO_DATABASE_URL or TURSO_AUTH_TOKEN environment variables.');
-  console.info('👉 Run with: env-cmd -f .env.local node scripts/migrate-to-turso.mjs');
+  console.error('❌ Missing env vars');
   process.exit(1);
 }
 
-// 2. Open DBs
 const local = new Database(LOCAL_DB);
 const cloud = createClient({ url: TURSO_URL, authToken: TURSO_TOKEN });
+
+// Strip FOREIGN KEY constraints line-by-line (Turso compatibility)
+function toTursoSql(sql) {
+  const lines = sql.split('\n');
+  const filtered = lines.filter(line => !line.trim().toUpperCase().startsWith('FOREIGN KEY'));
+  let result = filtered.join('\n');
+  // Remove trailing comma before closing paren
+  result = result.replace(/,\s*\n\s*\)/g, '\n)');
+  result = result.replace(/CREATE TABLE\b/g, 'CREATE TABLE IF NOT EXISTS');
+  return result;
+}
+
+const DROP_ORDER = [
+  'invoice_items_backup',
+  'invoice_items',
+  'inventory_warehouse_stock',
+  'inventory_transfer_logs',
+  'invoices',
+  'inventory_products',
+];
 
 const TABLES = [
   'invoices',
   'invoice_items',
   'inventory_products',
   'inventory_warehouse_stock',
-  'inventory_transfer_logs'
+  'inventory_transfer_logs',
 ];
 
+const BATCH_SIZE = 100;
+
 async function migrate() {
-  console.log('🚀 Starting Data Migration to Turso...');
+  console.log('🧹 Dropping all existing Turso tables...');
+  for (const table of DROP_ORDER) {
+    try {
+      await cloud.execute(`DROP TABLE IF EXISTS "${table}"`);
+      console.log(`   Dropped: ${table}`);
+    } catch (e) {
+      console.warn(`   Could not drop ${table}: ${e.message}`);
+    }
+  }
+
+  console.log('\n🚀 Starting fresh migration...');
 
   for (const table of TABLES) {
-    console.log(`\n📦 Processing table: ${table}...`);
+    console.log(`\n📦 Processing: ${table}...`);
 
-    // Get table schema from local
-    const schemaRow = local.prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name=?`).get(table);
+    const schemaRow = local.prepare(
+      `SELECT sql FROM sqlite_master WHERE type='table' AND name=?`
+    ).get(table);
+
     if (!schemaRow) {
-      console.warn(`⚠️  Skipping: ${table} not found in local db.`);
+      console.warn(`⚠️  Skipping: ${table} not in local db.`);
       continue;
     }
 
-    // A. Recreate table on Turso (Fresh Sync)
-    console.log(`   - Resetting cloud table...`);
+    const createSql = toTursoSql(schemaRow.sql);
+    console.log(`   SQL: ${createSql.substring(0, 120)}...`);
+
     try {
-      await cloud.execute(`DROP TABLE IF EXISTS ${table}`);
-      await cloud.execute(schemaRow.sql.replace(/CREATE TABLE/g, 'CREATE TABLE IF NOT EXISTS'));
+      await cloud.execute(createSql);
+      console.log(`   ✅ Table created.`);
     } catch (e) {
-      console.warn(`⚠️  Notice on DDL: ${e.message}`);
+      console.error(`   ❌ Failed to create ${table}: ${e.message}`);
+      console.error(`   Full SQL was:\n${createSql}`);
+      continue;
     }
 
-    // B. Read local rows
-    const rows = local.prepare(`SELECT * FROM ${table}`).all();
-    console.log(`   - Found ${rows.length} rows to sync.`);
-
+    const rows = local.prepare(`SELECT * FROM "${table}"`).all();
+    console.log(`   Found ${rows.length} rows.`);
     if (rows.length === 0) continue;
 
-    // C. Batch insert (Chunked)
-    const BATCH_SIZE = 50;
     const columns = Object.keys(rows[0]);
     const placeholders = columns.map(() => '?').join(',');
-    const sql = `INSERT INTO ${table} (${columns.map(c => `"${c}"`).join(',')}) VALUES (${placeholders})`;
+    const sql = `INSERT OR IGNORE INTO "${table}" (${columns.map(c => `"${c}"`).join(',')}) VALUES (${placeholders})`;
 
+    let synced = 0;
     for (let i = 0; i < rows.length; i += BATCH_SIZE) {
       const chunk = rows.slice(i, i + BATCH_SIZE);
-      
-      const batch = chunk.map(row => {
-        return {
-          sql,
-          args: Object.values(row).map(v => v === null ? null : v)
-        };
-      });
+      const batch = chunk.map(row => ({
+        sql,
+        args: Object.values(row).map(v => (v === undefined ? null : v)),
+      }));
 
       try {
-        await cloud.batch(batch, "write");
-        process.stdout.write(`   ✔ Progress: ${Math.min(i + BATCH_SIZE, rows.length)}/${rows.length} rows sync'd\r`);
+        await cloud.batch(batch, 'write');
+        synced += chunk.length;
+        process.stdout.write(`   ✔ ${synced}/${rows.length} rows\r`);
       } catch (err) {
-        console.error(`\n❌ Error syncing batch at index ${i} for ${table}:`, err.message);
+        console.error(`\n   ❌ Batch error at index ${i}: ${err.message}`);
         throw err;
       }
     }
-    console.log(`\n✅ ${table} synced successfully.`);
+    console.log(`\n   ✅ ${table} synced. (${rows.length} rows)`);
   }
 
-  console.log('\n✨ Database migration complete! Your cloud dashboard is now live.');
+  console.log('\n✨ Migration complete! Turso is ready.');
 }
 
 migrate().catch(err => {
-  console.error('\n💥 Migration FAILED:', err);
+  console.error('\n💥 FAILED:', err.message);
   process.exit(1);
 });
