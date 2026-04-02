@@ -1,34 +1,10 @@
 -- SKI Project Database Schema
 
--- Invoice Headers
-CREATE TABLE IF NOT EXISTS invoices (
-    id TEXT PRIMARY KEY,
-    task_number TEXT,
-    workflow_id TEXT,
-    status TEXT,
-    company TEXT,
-    mid TEXT,
-    timestamp INTEGER,
-    updated_timestamp INTEGER,
-    net_amount REAL,
-    vat_amount REAL,
-    pre_tax_amount REAL,
-    shipping_amount REAL,
-    paid_amount REAL,
-    remaining_amount REAL,
-    customer_name TEXT,
-    customer_code TEXT,
-    peak_id TEXT,
-    peak_code TEXT,
-    assignee_name TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
--- Invoice Line Items
+-- Invoice Line Items (Standalone)
 CREATE TABLE IF NOT EXISTS invoice_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    item_id TEXT,
-    invoice_id TEXT,
+    item_id TEXT UNIQUE,
+    invoice_id TEXT, -- Keep this for correlation, but it's no longer a foreign key
     sku TEXT,
     name TEXT,
     quantity REAL,
@@ -39,7 +15,34 @@ CREATE TABLE IF NOT EXISTS invoice_items (
     vat_amount REAL,
     discount_value REAL,
     discount_unit TEXT,
-    FOREIGN KEY (invoice_id) REFERENCES invoices(id)
+    timestamp INTEGER,
+    sale_channel TEXT,
+    shop_name TEXT
+);
+
+-- Invoices Header
+CREATE TABLE IF NOT EXISTS invoices (
+    id TEXT PRIMARY KEY,
+    task_number TEXT,
+    workflow_id TEXT,
+    status TEXT,
+    company TEXT,
+    mid TEXT, 
+    timestamp INTEGER, 
+    updated_timestamp INTEGER, 
+    net_amount REAL, 
+    vat_amount REAL, 
+    pre_tax_amount REAL, 
+    shipping_amount REAL, 
+    paid_amount REAL, 
+    remaining_amount REAL,
+    customer_name TEXT, 
+    customer_code TEXT, 
+    peak_id TEXT, 
+    peak_code TEXT, 
+    assignee_name TEXT,
+    sale_channel TEXT,
+    shop_name TEXT
 );
 
 -- Inventory Products
@@ -94,8 +97,6 @@ CREATE TABLE IF NOT EXISTS inventory_transfer_logs (
 );
 
 -- Indexing for performance
-CREATE INDEX IF NOT EXISTS idx_invoice_timestamp ON invoices(timestamp);
-CREATE INDEX IF NOT EXISTS idx_invoice_task_number ON invoices(task_number);
 CREATE INDEX IF NOT EXISTS idx_item_sku ON invoice_items(sku);
 CREATE INDEX IF NOT EXISTS idx_item_invoice_id ON invoice_items(invoice_id);
 CREATE INDEX IF NOT EXISTS idx_inventory_sku ON inventory_products(sku);

@@ -30,14 +30,19 @@ def process_hits(hits, conn):
         customer = detail.get('customerInfo', {})
         peak = detail.get('peakInfo', {})
         
+        timestamp = hit.get('timestamp')
+        sale_channel = customer.get('group')
+        shop_name = customer.get('branchName')
+
         # Insert Invoice
         cursor.execute("""
             INSERT OR REPLACE INTO invoices (
                 id, task_number, workflow_id, status, company, mid, 
                 timestamp, updated_timestamp, net_amount, vat_amount, 
                 pre_tax_amount, shipping_amount, paid_amount, remaining_amount,
-                customer_name, customer_code, peak_id, peak_code, assignee_name
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                customer_name, customer_code, peak_id, peak_code, assignee_name,
+                sale_channel, shop_name
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             h_id,
             hit.get('taskNumber'),
@@ -45,7 +50,7 @@ def process_hits(hits, conn):
             hit.get('status'),
             hit.get('company'),
             hit.get('mid'),
-            hit.get('timestamp'),
+            timestamp,
             hit.get('updatedTimestamp'),
             order.get('netAmount'),
             order.get('vatAmount'),
@@ -57,9 +62,13 @@ def process_hits(hits, conn):
             customer.get('code'),
             peak.get('id'),
             peak.get('code'),
-            (detail.get('assignees') or [{}])[0].get('employeeNumber') if detail.get('assignees') else None
+            (detail.get('assignees') or [{}])[0].get('employeeNumber') if detail.get('assignees') else None,
+            sale_channel,
+            shop_name
         ))
-        
+        # Clear existing items for this invoice to prevent duplication
+        cursor.execute("DELETE FROM invoice_items WHERE invoice_id = ?", (h_id,))
+
         # Insert Items
         items = order.get('items', [])
         for item in items:
@@ -67,8 +76,9 @@ def process_hits(hits, conn):
                 INSERT INTO invoice_items (
                     item_id, invoice_id, sku, name, quantity, unit,
                     price, net_amount, pre_tax_amount, vat_amount,
-                    discount_value, discount_unit
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    discount_value, discount_unit, timestamp,
+                    sale_channel, shop_name
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 item.get('itemId'),
                 h_id,
@@ -81,7 +91,10 @@ def process_hits(hits, conn):
                 item.get('preTaxAmount'),
                 item.get('vatAmount'),
                 item.get('discount', {}).get('value'),
-                item.get('discount', {}).get('unit')
+                item.get('discount', {}).get('unit'),
+                timestamp,
+                sale_channel,
+                shop_name
             ))
     conn.commit()
 

@@ -1,0 +1,209 @@
+{
+  "workflowId": "INVOICE",
+  "updatedTimestamp": 1775115764127,
+  "status": "PENDING",
+  "type": "TASK",
+  "detail": {
+    "assignees": [
+      {
+        "userInfo": {
+          "email": "nop.gtw@gmail.com",
+          "displayName": "Nop",
+          "pictureUrl": "https://profile.line-scdn.net/0hjdQ1Ik_dNUt8SCIAiG5LNAwYNiFfOWxZBXooKRtMaHIUe3MUBSp_Kkgba3xEfCUZACZ7LB0can1wW0ItYh7Jf3t4a3xFfHQfUiZ-qQ"
+        },
+        "role": "MODERNTRADE",
+        "roleInfo": {
+          "roleEn": "MODERNTRADE",
+          "roleTh": "\u0e41\u0e1c\u0e19\u0e01\u0e02\u0e32\u0e22 \u0e42\u0e21\u0e40\u0e14\u0e34\u0e23\u0e4c\u0e19\u0e40\u0e17\u0e23\u0e14"
+        },
+        "lUId": "U58b55c236ed04ddd0ef6f210f250051e",
+        "gUId": "01J0YVC79TS4S98594S1XH8YRN",
+        "index": "0,01J0YVC79TS4S98594S1XH8YRN",
+        "employeeNumber": "\u0e40\u0e01\u0e23\u0e35\u0e22\u0e07\u0e44\u0e01\u0e23 \u0e27\u0e34\u0e17\u0e22\u0e32\u0e2a\u0e23\u0e23\u0e40\u0e1e\u0e0a\u0e23 (\u0e19\u0e1e)"
+      }
+    ],
+    "order": {
+      "note": "",
+      "withHoldingTaxAmount": 0,
+      "netAmount": 1587.9,
+      "dueDate": 1782838799999,
+      "discount": {
+        "value": null,
+        "unit": "baht"
+      },
+      "vatAmount": 103.88,
+      "taxStatus": 0,
+      "paymentType": "BILLING_CREDIT",
+      "remainingAmount": 1587.9,
+      "shippingAmount": 0,
+      "preTaxAmount": 1484.02,
+      "items": [
+        {
+          "vatAmountWithoutProductDiscount": 50.407000000000004,
+          "quantity": 2,
+          "withHoldingTaxAmount": 0,
+          "withHoldingTax": 0,
+          "netAmount": 720.1,
+          "netAmountWithDiscount": 720.1,
+          "available": 200,
+          "discount": {
+            "value": 0,
+            "unit": "percent",
+            "text": ""
+          },
+          "netAmountWithoutProductDiscount": 720.1,
+          "type": "SP",
+          "vatAmount": 50.407000000000004,
+          "itemId": "2G1hjdy",
+          "unit": "\u0e2d\u0e31\u0e19",
+          "vatAmountWithDiscount": 50.407000000000004,
+          "vatType": 3,
+          "price": 360.05,
+          "coverImage": "",
+          "preTaxAmountWithoutProductDiscount": 720.1,
+          "name": "TRUPER 18380 \u0e01\u0e23\u0e23\u0e44\u0e01\u0e23\u0e15\u0e31\u0e14\u0e01\u0e34\u0e48\u0e07\u0e14\u0e49\u0e32\u0e21\u0e44\u0e21\u0e49\u0e22\u0e32\u0e27 21 \u0e19\u0e34\u0e49\u0e27 (T-122) (\u0e23\u0e32\u0e04\u0e32\u0e15\u0e48\u0e2d\u0e2d\u0e31\u0e19 ,\u0e43\u0e19\u0e01\u0e25\u0e48\u0e2d\u0e07\u0e1a\u0e23\u0e23\u0e08\u0e38 3 \u0e2d\u0e31\u0e19)",
+          "alias": "",
+          "id": "01HMYMDBESJTQ0FKCDQAYR1B4B",
+          "preTaxAmount": 720.1,
+          "sku": "160011-TUR-0032",
+          "preTaxAmountWithDiscount": 720.1
+        },
+        {
+          "vatAmountWithoutProductDiscount": 53.4744,
+          "quantity": 2,
+          "withHoldingTaxAmount": 0,
+          "withHoldingTax": 0,
+          "netAmount": 763.92,
+          "netAmountWithDiscount": 763.92,
+          "available": 111,
+          "discount": {
+            "value": 0,
+            "unit": "percent",
+            "text": ""
+          },
+          "netAmountWithoutProductDiscount": 763.92,
+          "type": "SP",
+          "vatAmount": 53.4744,
+          "itemId": "qLJi6je",
+          "unit": "\u0e2d\u0e31\u0e19",
+          "vatAmountWithDiscount": 53.4744,
+          "vatType": 3,
+          "price": 381.96,
+          "coverImage": "",
+          "preTaxAmountWithoutProductDiscount": 763.92,
+          "name": "TRUPER 17160 \u0e1e\u0e25\u0e31\u0e48\u0e27\u0e02\u0e38\u0e14 \u0e1b\u0e25\u0e32\u0e22\u0e41\u0e2b\u0e25\u0e21 \u0e04\u0e27\u0e32\u0e21\u0e22\u0e32\u0e27\u0e23\u0e27\u0e21 102.8cm (PRY-P)",
+          "alias": "",
+          "id": "01HMYMDCP5S4CJ9QQVSBYBMEY1",
+          "preTaxAmount": 763.92,
+          "sku": "160391-TUR-0010",
+          "preTaxAmountWithDiscount": 763.92
+        }
+      ],
+      "paidAmount": 0,
+      "remainingWithHoldingTaxAmount": 0
+    },
+    "orderInfo": {
+      "paymentTerm": "CREDIT",
+      "purchaseOrderNumber": "4311414293"
+    },
+    "peakInfo": {
+      "onlineViewLink": "https://secure.peakengine.com/Pdf?emi=MjY4MDE3&eti=OTM5MTQ3MjM=&eii=Mg==",
+      "documentLink": "https://doc.peakaccount.com/?emi=MjY4MDE3&eti=OTM5MTQ3MjM=&etti=Mg==&efti=MQ==",
+      "id": "9028ffd8-4de9-43c0-a473-3a737e3d0f04",
+      "code": "SIV-6904-0014"
+    },
+    "shippingInfo": {
+      "enablePartial": "FALSE",
+      "number": "SHP-2026040001",
+      "location": {
+        "note": "",
+        "phoneNumber": "0833220410",
+        "address": {
+          "postCode": "21140",
+          "address": "558  \u0e2b\u0e21\u0e39\u0e48\u0e17\u0e35\u0e48 5",
+          "province": "\u0e23\u0e30\u0e22\u0e2d\u0e07",
+          "subdistrict": "\u0e1b\u0e25\u0e27\u0e01\u0e41\u0e14\u0e07",
+          "district": "\u0e1b\u0e25\u0e27\u0e01\u0e41\u0e14\u0e07"
+        },
+        "isPack": false,
+        "courier": null,
+        "geoLocation": {
+          "lng": 101.2000882,
+          "lat": 12.960888
+        },
+        "name": "-",
+        "alias": "\u0e17\u0e35\u0e48\u0e2d\u0e22\u0e39\u0e48\u0e25\u0e39\u0e39\u0e01\u0e04\u0e49\u0e32",
+        "id": "ZX4T",
+        "type": "OTHER",
+        "shippingLine": "\u0e2d\u0e22\u0e38\u0e18\u0e22\u0e32"
+      },
+      "id": "01KN6J818MHWVQH125Y4EK6K48",
+      "type": "SHIP"
+    },
+    "taskInfo": {
+      "refNumbers": [
+        "SO-202604-0013"
+      ],
+      "createBy": "\u0e2d\u0e18\u0e34\u0e1e\u0e25 \u0e27\u0e34\u0e20\u0e32\u0e28\u0e23\u0e35\u0e27\u0e31\u0e12\u0e19\u0e4c (\u0e1a\u0e34\u0e27)",
+      "refIds": [
+        "01KN6G7K2YVD4P4HV4XZTNMAQX"
+      ],
+      "createdDate": 1775115758052,
+      "isCopied": false,
+      "dueDate": 1775115758052,
+      "gUId": "01J17ER7R4WGADNE4R6X70M9RX",
+      "tags": [
+        "SO-202604-0013"
+      ]
+    },
+    "customerInfo": {
+      "address": {
+        "postCode": "21140",
+        "address": "558  \u0e2b\u0e21\u0e39\u0e48\u0e17\u0e35\u0e48 5",
+        "province": "\u0e23\u0e30\u0e22\u0e2d\u0e07",
+        "subdistrict": "\u0e1b\u0e25\u0e27\u0e01\u0e41\u0e14\u0e07",
+        "district": "\u0e1b\u0e25\u0e27\u0e01\u0e41\u0e14\u0e07"
+      },
+      "phoneNumber": "0833220410",
+      "code": "C6608-0465",
+      "branchNumber": "00146",
+      "taxId": "0107544000043",
+      "subGroup": "\u0e42\u0e2e\u0e21 \u0e42\u0e1b\u0e23\u0e14\u0e31\u0e01\u0e2a\u0e4c \u0e40\u0e0b\u0e47\u0e19\u0e40\u0e15\u0e2d\u0e23\u0e4c",
+      "grade": "C",
+      "name": "\u0e42\u0e2e\u0e21\u0e42\u0e1b\u0e23\u0e14\u0e31\u0e01\u0e2a\u0e4c \u0e40\u0e0b\u0e47\u0e19\u0e40\u0e15\u0e2d\u0e23\u0e4c",
+      "branchName": "\u0e2a\u0e32\u0e02\u0e32\u0e40\u0e21\u0e01\u0e32\u0e42\u0e2e\u0e21-\u0e1b\u0e25\u0e27\u0e01\u0e41\u0e14\u0e07",
+      "locationType": "INBOUND",
+      "category": 3,
+      "group": "G-Modern Trade"
+    },
+    "contacts": [
+      {
+        "firstName": "IM",
+        "lastName": "",
+        "phoneNumber": "0833220410",
+        "lineProfile": null,
+        "isPrimary": true,
+        "id": "OWNER",
+        "position": "OWNER",
+        "title": "\u0e40\u0e08\u0e49\u0e32\u0e02\u0e2d\u0e07"
+      }
+    ]
+  },
+  "parentIds": [
+    "01JBMJ6QYYEQKKTYTTEVE1DTV5"
+  ],
+  "prefix": "SIV",
+  "id": "01KN6J9TF435KBPSZA4008P681",
+  "mid": "SKi",
+  "group": "",
+  "company": "SKi",
+  "metaStatus": "",
+  "taskNumber": "SIV-6904-0014",
+  "timestamp": 1775115758052,
+  "ref2": "01KN6G7K2YVD4P4HV4XZTNMAQX",
+  "versionId": "01JCJ81REVFQZ1NEAP578HV25C",
+  "taskId": "",
+  "ref3": "01J0YVC79TS4S98594S1XH8YRN",
+  "ref1": "01JBMJ6QYYEQKKTYTTEVE1DTV5",
+  "checklists": []
+}
