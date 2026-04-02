@@ -10,24 +10,30 @@ const TURSO_TOKEN = process.env.TURSO_AUTH_TOKEN || process.env.NEXT_PUBLIC_TURS
 
 // Resilient path search for Vercel layering
 function resolveDbPath() {
+  const cwd = process.cwd();
   const paths = [
-    path.join(process.cwd(), 'public', 'local.db'),
-    path.join(process.cwd(), 'local.db'),
-    path.join(process.cwd(), 'data', 'local.db'),
+    path.join(cwd, 'public', 'local.db'),
+    path.join(cwd, 'local.db'),
+    path.join(cwd, 'data', 'local.db'),
     // Vercel serverless functions sometimes have a deep path
-    path.join(process.cwd(), '.next', 'server', 'chunks', 'public', 'local.db'),
-    path.join(process.cwd(), '.next', 'server', 'public', 'local.db'),
+    path.join(cwd, '.next', 'server', 'chunks', 'public', 'local.db'),
+    path.join(cwd, '.next', 'server', 'public', 'local.db'),
   ];
+
+  console.log(`🔍 Searching for database in ${cwd}...`);
 
   for (const p of paths) {
     if (fs.existsSync(p)) {
-      console.log(`✅ Database found: ${p}`);
+      const stats = fs.statSync(p);
+      console.log(`✅ Database found: ${p} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`);
       return p;
+    } else {
+      console.log(`❌ Not found at: ${p}`);
     }
   }
   
   const defaultPath = paths[0];
-  console.error(`❌ Database not found in search paths. Defaulting to: ${defaultPath}`);
+  console.error(`🚨 CRITICAL: Database not found in ANY search path! Defaulting to: ${defaultPath}`);
   return defaultPath;
 }
 
