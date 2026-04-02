@@ -8,6 +8,8 @@ import fs from 'fs';
 const TURSO_URL = process.env.TURSO_DATABASE_URL || process.env.NEXT_PUBLIC_TURSO_DATABASE_URL;
 const TURSO_TOKEN = process.env.TURSO_AUTH_TOKEN || process.env.NEXT_PUBLIC_TURSO_AUTH_TOKEN;
 
+console.log(`🔌 Initializing database connection... TURSO_URL Present: ${!!TURSO_URL}`);
+
 // Resilient path search for Vercel layering
 function resolveDbPath() {
   const cwd = process.cwd();
