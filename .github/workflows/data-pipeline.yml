@@ -1,0 +1,60 @@
+name: Daily Turso Data Pipeline
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Every day at 00:00 UTC
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  sync_and_materialize:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Python Dependencies
+        run: pip install requests sqlite3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './dashboard/package-lock.json'
+
+      - name: Install Node Dependencies
+        working-directory: ./dashboard
+        run: npm install
+
+      - name: Run WFM & Inventory Fetchers
+        env:
+          WFM_URL: ${{ secrets.WFM_URL }}
+          INV_URL: ${{ secrets.INV_URL }}
+          INV_AUTH: ${{ secrets.INV_AUTH }}
+          DB_PATH: ./dashboard/data/local.db
+        run: |
+          python fetch_ski_data.py
+          python fetch_inventory_data.py
+
+      - name: Push Data to Turso
+        working-directory: ./dashboard
+        env:
+          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+        run: node scripts/push-to-turso.mjs
+
+      - name: Generate Dashboard Summaries (Materialized Views)
+        working-directory: ./dashboard
+        env:
+          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+        run: node scripts/generate-summaries.mjs
+
+      - name: Log Completion
+        run: echo "✅ Data Pipeline Completed Successfully at $(date)"

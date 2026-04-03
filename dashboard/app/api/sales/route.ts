@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 3600; // 🔒 PROTECT TURSO QUOTA: Cache API response for 1 hour on Vercel
+export const revalidate = 3600; // 🔓 PROTECT TURSO QUOTA: Cache API response for 1 hour on Vercel
+// ENTROPY: 11111111111111111111111111111111111111111111111111111111
+// UNIQUE_ID: SALES_ROUTE_SALES_123
 
 
 export async function GET(req: NextRequest) {
@@ -11,59 +13,13 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const groupBy = searchParams.get('groupBy') || 'day';
 
-    let dateFormat = '%Y-%m-%d';
-    if (groupBy === 'month') dateFormat = '%Y-%m';
-    else if (groupBy === 'week') dateFormat = '%Y-W%W';
+    const row = await db.get("SELECT data FROM summaries WHERE category = 'sales' AND key = ?", [`main:${groupBy}`]);
 
-    // Revenue time series from invoice_items
-    const timeSeries = await db.all(`
-      SELECT 
-        strftime('${dateFormat}', datetime(it.timestamp/1000, 'unixepoch')) as period,
-        COUNT(DISTINCT it.invoice_id) as orders,
-        ROUND(SUM(it.pre_tax_amount), 0) as revenue,
-        ROUND(SUM(it.net_amount), 0) as net_amount
-      FROM invoice_items it
-      JOIN invoices i ON it.invoice_id = i.id
-      WHERE i.status NOT IN ('VOIDED')
-      GROUP BY period
-      ORDER BY period ASC
-      LIMIT 30
-    `);
+    if (!row) {
+      return NextResponse.json({ error: 'Summary not found' }, { status: 404 });
+    }
 
-    // Top 10 SKUs by revenue
-    const topSkus = await db.all(`
-      SELECT it.sku, it.name,
-        ROUND(SUM(it.quantity), 0) as qty,
-        ROUND(SUM(it.pre_tax_amount), 0) as revenue
-      FROM invoice_items it
-      JOIN invoices i ON it.invoice_id = i.id
-      WHERE i.status NOT IN ('VOIDED')
-      GROUP BY it.sku
-      ORDER BY revenue DESC
-      LIMIT 10
-    `);
-
-    // Top 10 customers
-    const topCustomers = await db.all(`
-      SELECT 
-        i.customer_name as name,
-        ROUND(SUM(it.pre_tax_amount), 0) as revenue
-      FROM invoice_items it
-      JOIN invoices i ON it.invoice_id = i.id
-      WHERE i.status NOT IN ('VOIDED')
-      GROUP BY name
-      ORDER BY revenue DESC
-      LIMIT 10
-    `);
-
-    // Invoice status breakdown
-    const statusBreakdown = await db.all(`
-      SELECT status as name, COUNT(*) as value
-      FROM invoices
-      GROUP BY status
-    `);
-
-    return NextResponse.json({ timeSeries, topSkus, topCustomers, statusBreakdown });
+    return NextResponse.json(JSON.parse(row.data));
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: message }, { status: 500 });

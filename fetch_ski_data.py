@@ -4,18 +4,24 @@ import json
 import time
 from datetime import datetime
 
-# Configuration
-WFM_URL = 'https://open-api.dataslot.app/search/wfm/v1/SKi'
-DB_PATH = 'dashboard/data/local.db'
+import os
+from datetime import datetime, timedelta
 
-# Time Range: 2026-01-01 to 2026-02-28
-# Start: 1767225600000 (2026-01-01 00:00:00 UTC)
-# End: 1772332800000 (2026-03-01 00:00:00 UTC)
-START_TIMESTAMP = 1767225600000
-END_TIMESTAMP = 1772332800000
+# Configuration
+WFM_URL = os.environ.get('WFM_URL', 'https://open-api.dataslot.app/search/wfm/v1/SKi')
+DB_PATH = os.environ.get('DB_PATH', 'dashboard/data/local.db')
+
+# Default Time Range (Last 30 Days if not specified)
+now = datetime.now()
+thirty_days_ago = now - timedelta(days=30)
+START_TIMESTAMP = int(os.environ.get('START_TIMESTAMP', thirty_days_ago.timestamp() * 1000))
+END_TIMESTAMP = int(os.environ.get('END_TIMESTAMP', (now + timedelta(days=1)).timestamp() * 1000))
 
 def init_db():
+    if not os.path.exists(os.path.dirname(DB_PATH)):
+        os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
+    # Ensure schema is applied even if file exists (adds new columns)
     with open('schema.sql', 'r', encoding='utf-8') as f:
         conn.executescript(f.read())
     conn.close()

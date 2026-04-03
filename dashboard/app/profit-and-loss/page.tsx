@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useState, useCallback, useId, useRef } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, Sector, ComposedChart, Line, Bar, BarChart, XAxis, YAxis, CartesianGrid, Treemap } from 'recharts';
-import { Download, ChevronLeft, ChevronRight, RefreshCw, Users, Search, ShoppingBag, BarChart3 } from 'lucide-react';
+import { RefreshCw, Users, Search, ShoppingBag, BarChart3 } from 'lucide-react';
 import { useSidebar } from '@/components/layout/SidebarContext';
 
 function fmt(n: number) {
@@ -24,26 +24,6 @@ interface PLRow {
   revenue: number;
   vat_amount: number;
   net_amount: number;
-}
-
-function ProgressBar({ value, total }: { value: number; total: number }) {
-  const pct = (value / (total || 1)) * 100;
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (ref.current) {
-      ref.current.style.setProperty('--progress-pct', `${pct}%`);
-    }
-  }, [pct]);
-
-  return (
-    <div className="w-full bg-slate-700 rounded-full h-progress overflow-hidden">
-      <div 
-        ref={ref}
-        className="bg-blue-500 h-full rounded-full transition-all duration-1000 dynamic-progress" 
-      />
-    </div>
-  );
 }
 
 const Dot = ({ color }: { color: string }) => {
@@ -114,11 +94,8 @@ export default function ProfitLossPage() {
   const [years, setYears] = useState<string[]>([]);
   const [year, setYear] = useState('2026');
   const [month, setMonth] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const itemsPerPage = 20;
 
   const load = useCallback(() => {
     setLoading(true);
@@ -167,7 +144,6 @@ export default function ProfitLossPage() {
         setGradeData(uniqueGradeData);
         
         setYears(d.years ?? []);
-        setPage(1);
         setLoading(false);
       })
       .catch((e: Error) => {
@@ -179,17 +155,8 @@ export default function ProfitLossPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const totalPages = Math.ceil(rows.length / itemsPerPage);
-  const pageRows = rows.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
-  // Process assignees: group or filter based on search
   const displayedAssignees = (() => {
-    if (searchTerm.trim()) {
-      return assignees.filter((a: { name: string; value: number }) => 
-        a.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
     // Default: group small contributors (< 2%) into 'Others'
     if (assignees.length <= 10) return assignees;
     const total = summary?.total_revenue || 1;
@@ -204,19 +171,6 @@ export default function ProfitLossPage() {
     ].sort((a, b) => b.value - a.value);
   })();
 
-  const downloadCSV = () => {
-    const header = 'Date,Orders,Revenue (ex-VAT),VAT,Net Amount\n';
-    const csvContent = rows.map(r =>
-      `${r.date},${r.orders},${r.revenue},${r.vat_amount},${r.net_amount}`
-    ).join('\n');
-    const blob = new Blob([header + csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `pl_${year}${month ? '_' + month : ''}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
 
   return (
     <div className="animate-fade-up">
@@ -228,11 +182,18 @@ export default function ProfitLossPage() {
         <div className="flex-center gap-2">
           {/* Year Filter */}
           <select title="Select Year" className="filter-select" value={year} onChange={e => setYear(e.target.value)}>
+            <option value="all">All Time</option>
             {years.length > 0 ? years.map(y => <option key={y} value={y}>{y}</option>)
               : <option value="2026">2026</option>}
           </select>
           {/* Month Filter */}
-          <select title="Select Month" className="filter-select" value={month} onChange={e => setMonth(e.target.value)}>
+          <select 
+            title="Select Month" 
+            className="filter-select" 
+            value={month} 
+            onChange={e => setMonth(e.target.value)}
+            disabled={year === 'all'}
+          >
             <option value="">All Months</option>
             {['01','02','03','04','05','06','07','08','09','10','11','12'].map((m, i) => (
               <option key={m} value={m}>
@@ -240,9 +201,6 @@ export default function ProfitLossPage() {
               </option>
             ))}
           </select>
-          <button title="Export to CSV" className="btn btn-ghost" onClick={downloadCSV}>
-            <Download size={14} /> Export CSV
-          </button>
           <button title="Refresh Data" className="btn btn-ghost btn-icon-only" onClick={load}>
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           </button>
@@ -432,87 +390,7 @@ export default function ProfitLossPage() {
         </div>
 
 
-        {/* Assignee Table (Rankings) */}
-        <div className="card mb-24 p-24">
-          <div className="flex-between mb-16">
-            <h3 className="text-lg font-semibold">Assignee Performance Rankings</h3>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-lg border border-slate-700">
-              <Search size={14} className="text-slate-400" />
-              <input 
-                type="text" 
-                placeholder="Search assignee..."
-                className="text-xs bg-transparent border-none outline-none w-40 text-slate-200"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {displayedAssignees.length === 0 ? (
-              <div className="col-span-full text-center py-10 text-slate-500">No assignees match your search</div>
-            ) : displayedAssignees.map((a: { name: string; value: number }, i: number) => (
-              <div key={a.name} className="flex flex-col gap-2 p-3 rounded-xl bg-slate-800/30 border border-slate-700/50">
-                <div className="flex-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-slate-500 w-4">{i + 1}</span>
-                    <span className="text-sm font-medium text-slate-200 truncate max-w-[120px]">{a.name}</span>
-                  </div>
-                  <span className="text-sm font-bold text-blue-400">{fmt(a.value)}</span>
-                </div>
-                <ProgressBar value={a.value} total={summary?.total_revenue || 1} />
-                <div className="text-[10px] text-slate-500 text-right">
-                  {((a.value / (summary?.total_revenue || 1)) * 100).toFixed(1)}% of total
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Data Table */}
-        <div className="data-table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th className="text-right">Orders</th>
-                <th className="text-right">Revenue (ex-VAT)</th>
-                <th className="text-right">VAT Amount</th>
-                <th className="text-right">Net Amount (incl. VAT)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan={5} className="text-center py-32 text-muted">Loading…</td></tr>
-              ) : pageRows.length === 0 ? (
-                <tr><td colSpan={5} className="text-center py-32 text-muted">No data for selected period</td></tr>
-              ) : pageRows.map(row => (
-                <tr key={row.date}>
-                  <td className="td-mono">{row.date}</td>
-                  <td className="text-right text-muted">{row.orders}</td>
-                  <td className="text-right font-semibold text-blue">{fmt(row.revenue)}</td>
-                  <td className="text-right text-muted">{fmt(row.vat_amount)}</td>
-                  <td className="text-right font-semibold">{fmt(row.net_amount)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* Pagination */}
-          <div className="pagination">
-            <span className="pagination-info">
-              Showing {rows.length === 0 ? 0 : (page - 1) * itemsPerPage + 1}–{Math.min(page * itemsPerPage, rows.length)} of {rows.length} records
-            </span>
-            <button title="Previous Page" className="page-btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
-              <ChevronLeft size={14} />
-            </button>
-            {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => i + 1).map(p => (
-              <button title={`Go to Page ${p}`} key={p} className={`page-btn${page === p ? ' active' : ''}`} onClick={() => setPage(p)}>{p}</button>
-            ))}
-            <button title="Next Page" className="page-btn" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
-              <ChevronRight size={14} />
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

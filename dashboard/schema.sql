@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS invoices (
     peak_id TEXT, 
     peak_code TEXT, 
     assignee_name TEXT,
+    customer_grade TEXT,
     sale_channel TEXT,
     shop_name TEXT
 );
@@ -101,3 +102,12 @@ CREATE INDEX IF NOT EXISTS idx_item_sku ON invoice_items(sku);
 CREATE INDEX IF NOT EXISTS idx_item_invoice_id ON invoice_items(invoice_id);
 CREATE INDEX IF NOT EXISTS idx_inventory_sku ON inventory_products(sku);
 CREATE INDEX IF NOT EXISTS idx_inventory_product_id ON inventory_warehouse_stock(product_id);
+
+-- Summary Tables for Analytics performance
+CREATE TABLE IF NOT EXISTS summaries (
+    category TEXT NOT NULL,
+    key TEXT NOT NULL,
+    data TEXT NOT NULL, -- JSON string of pre-calculated results
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (category, key)
+);

@@ -1,10 +1,10 @@
 {
   "project_name": "SKI Project",
-  "objective": "New Strategic Project - Objective Pending",
-  "theme": "Industrial",
+  "objective": "Supply Chain & Inventory Management Optimization",
+  "theme": "Industrial Hardware",
   "core_logic": "Standard Agentic Operations",
-  "constraints": [],
+  "constraints": ["Minimize Turso quota usage"],
   "status": "ACTIVE",
-  "priority_skus": [],
+  "priority_skus": ["BRAVO-GLUE", "DRILL-CHUCK-B16", "ARM-1609B03566"],
   "market_constraints": []
 }

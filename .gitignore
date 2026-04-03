@@ -25,3 +25,8 @@ next-env.d.ts
 # NOTE: local.db is NOT ignored 
 # as it must be bundled for Vercel deployment.
 /local.db
+
+dashboard/data/local.db
+dashboard/data/local.db.bak
+dashboard/data/local_backup_*.db
+dashboard/data/ski.db

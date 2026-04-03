@@ -8,11 +8,9 @@ from datetime import datetime
 WFM_URL = 'https://open-api.dataslot.app/search/wfm/v1/SKi'
 DB_PATH = 'dashboard/data/local.db'
 
-# Time Range: 2026-01-01 to 2026-02-28
-# Start: 1767225600000 (2026-01-01 00:00:00 UTC)
-# End: 1772332800000 (2026-03-01 00:00:00 UTC)
-START_TIMESTAMP = 1767225600000
-END_TIMESTAMP = 1772332800000
+# Time Range: Broadened for all-time fetch
+START_TIMESTAMP = 1577836800000 # 2020-01-01 00:00:00 UTC
+END_TIMESTAMP = int(time.time() * 1000)
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)

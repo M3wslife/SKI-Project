@@ -1,0 +1,15 @@
+# Exclude large local databases from the serverless bundle
+local.db
+data/local.db
+public/local.db
+
+# Exclude local build artifacts and logs
+.next/cache
+node_modules
+.env.*.local
+.env.local
+
+# Exclude Python scripts and data ingestion artifacts
+fetch_ski_data.py
+scripts/
+data/

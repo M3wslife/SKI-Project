@@ -1,0 +1,7 @@
+remote: error: Trace: fb107168c43a8bdaed8107bad39b9a9bcb8fbf42ee3197b07d681c48dae3f7a5        
+remote: error: See https://gh.io/lfs for more information.        
+remote: error: File dashboard/data/local.db is 128.48 MB; this exceeds GitHub's file size limit of 100.00 MB        
+remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/M3wslife/SKI-Project.git
+ ! [remote rejected] master -> master (pre-receive hook declined)
+error: failed to push some refs to 'https://github.com/M3wslife/SKI-Project.git'

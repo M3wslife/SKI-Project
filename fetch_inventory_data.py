@@ -3,13 +3,18 @@ import sqlite3
 import json
 import time
 
+import os
+
 # Configuration
-INV_URL = 'https://search.inventory.dataslot.app/indexes/inventories/search'
-INV_AUTH = 'Bearer rlQEd84B9Yh6xmjRqXmSbWanM3W6h3FW'
-DB_PATH = 'local.db'
+INV_URL = os.environ.get('INV_URL', 'https://search.inventory.dataslot.app/indexes/inventories/search')
+INV_AUTH = os.environ.get('INV_AUTH', 'Bearer rlQEd84B9Yh6xmjRqXmSbWanM3W6h3FW')
+DB_PATH = os.environ.get('DB_PATH', 'dashboard/data/local.db')
 
 def init_db():
+    if not os.path.exists(os.path.dirname(DB_PATH)):
+        os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
+    # Ensure schema is applied even if file exists (adds new columns)
     with open('schema.sql', 'r', encoding='utf-8') as f:
         conn.executescript(f.read())
     conn.close()

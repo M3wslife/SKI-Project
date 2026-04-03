@@ -14,9 +14,9 @@ console.log(`🔌 Initializing database connection... TURSO_URL Present: ${!!TUR
 function resolveDbPath() {
   const cwd = process.cwd();
   const paths = [
+    path.join(cwd, 'data', 'local.db'),
     path.join(cwd, 'public', 'local.db'),
     path.join(cwd, 'local.db'),
-    path.join(cwd, 'data', 'local.db'),
     // Vercel serverless functions sometimes have a deep path
     path.join(cwd, '.next', 'server', 'chunks', 'public', 'local.db'),
     path.join(cwd, '.next', 'server', 'public', 'local.db'),
