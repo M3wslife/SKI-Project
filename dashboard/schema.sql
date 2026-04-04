@@ -103,6 +103,15 @@ CREATE INDEX IF NOT EXISTS idx_item_invoice_id ON invoice_items(invoice_id);
 CREATE INDEX IF NOT EXISTS idx_inventory_sku ON inventory_products(sku);
 CREATE INDEX IF NOT EXISTS idx_inventory_product_id ON inventory_warehouse_stock(product_id);
 
+-- 🟢 NEW: Critical indexes for interactive filtering
+CREATE INDEX IF NOT EXISTS idx_invoices_assignee ON invoices(assignee_name);
+CREATE INDEX IF NOT EXISTS idx_invoices_shop ON invoices(shop_name);
+CREATE INDEX IF NOT EXISTS idx_invoices_channel ON invoices(sale_channel);
+CREATE INDEX IF NOT EXISTS idx_invoices_timestamp ON invoices(timestamp);
+CREATE INDEX IF NOT EXISTS idx_items_timestamp ON invoice_items(timestamp);
+CREATE INDEX IF NOT EXISTS idx_items_shop ON invoice_items(shop_name);
+CREATE INDEX IF NOT EXISTS idx_items_channel ON invoice_items(sale_channel);
+
 -- Summary Tables for Analytics performance
 CREATE TABLE IF NOT EXISTS summaries (
     category TEXT NOT NULL,

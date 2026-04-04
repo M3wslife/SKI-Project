@@ -139,6 +139,61 @@ async function generatePL() {
   const years = [...new Set(months.map(m => m.year))];
   await saveSummary('pl', 'available_years', years);
 
+  // Helper to generate a filtered summary for a specific dimension
+  async function generateFilteredSummaries(keySuffix, pStart, pEnd, type, values, availableYears) {
+    for (const val of values) {
+      if (!val) continue;
+      const filterLabel = `${type}:${val}`;
+      const cacheKey = `main:${keySuffix}filter:${filterLabel}`;
+      
+      const filterCol = type === 'assignee' ? 'i.assignee_name' : 
+                        type === 'shop' ? 'it.shop_name' : 'it.sale_channel';
+
+      const res = await client.execute({
+        sql: `
+          SELECT 
+            ROUND(SUM(it.pre_tax_amount), 0) as total_revenue,
+            ROUND(SUM(it.vat_amount), 0) as total_vat,
+            ROUND(SUM(it.net_amount), 0) as total_net,
+            COUNT(DISTINCT it.invoice_id) as total_orders
+          FROM invoice_items it
+          JOIN invoices i ON it.invoice_id = i.id
+          WHERE it.timestamp >= ? AND it.timestamp < ?
+          AND i.status NOT IN ('VOIDED')
+          AND ${filterCol} = ?
+        `,
+        args: [pStart, pEnd, val]
+      });
+      const totals = res.rows[0];
+
+      const dailyRes = await client.execute({
+        sql: `
+          SELECT 
+            strftime('%Y-%m-%d', datetime(it.timestamp/1000, 'unixepoch')) as period,
+            ROUND(SUM(it.pre_tax_amount), 0) as revenue,
+            ROUND(SUM(it.vat_amount), 0) as vat,
+            ROUND(SUM(it.net_amount), 0) as net,
+            COUNT(DISTINCT it.invoice_id) as orders
+          FROM invoice_items it
+          JOIN invoices i ON it.invoice_id = i.id
+          WHERE it.timestamp >= ? AND it.timestamp < ?
+          AND i.status NOT IN ('VOIDED')
+          AND ${filterCol} = ?
+          GROUP BY period ORDER BY period ASC
+        `,
+        args: [pStart, pEnd, val]
+      });
+
+      const data = {
+        totals,
+        dailyRows: dailyRes.rows,
+        filter: { type, value: val },
+        years: availableYears // 🔓 BUNDLE: Include years to save Turso reads later
+      };
+      await saveSummary('pl', cacheKey, data);
+    }
+  }
+
   for (const { year, month } of months) {
     // We use actual timestamp ranges to be safe
     const startDate = new Date(`${year}-${month}-01T00:00:00Z`);
@@ -237,7 +292,9 @@ async function generatePL() {
       shops: shopsRes.rows, 
       gradeData: gradeDataRes.rows 
     };
-    await saveSummary('pl', `main:${year}:${month}`, data);
+    await saveSummary('pl', `main:${year}:${month}`, { ...data, years });
+
+    console.log(`   -> Main summary generated for ${year}-${month}. (Filters will materialize on-demand)`);
   }
   
   // 🟢 NEW: Generate Yearly Aggregations (All Months)
@@ -345,7 +402,9 @@ async function generatePL() {
       gradeData: gradeDataRes.rows 
     };
     // Save as yearly key: main:YEAR:
-    await saveSummary('pl', `main:${year}:`, data);
+    await saveSummary('pl', `main:${year}:`, { ...data, years });
+
+    console.log(`   -> Yearly summary generated for ${year}. (Filters will materialize on-demand)`);
   }
   
   // 🟢 NEW: Generate All-Time Aggregation (Total history with Hybrid Recovery)
@@ -434,10 +493,13 @@ async function generatePL() {
     })),
     assignees: allTimeAssigneeRes.rows, 
     channels: channels, 
-    shops: shops, 
-    gradeData: allTimeGradeDataRes.rows 
+    shops: shops.map(r => ({ name: r.name, value: r.value })), 
+    gradeData: allTimeGradeDataRes.rows,
+    years
   };
   await saveSummary('pl', `main:all:`, allTimeData);
+
+  console.log('   -> All-time summary generated. (Filters will materialize on-demand)');
 
   console.log('P&L summaries generated (monthly + yearly + all-time with hybrid recovery).');
 }

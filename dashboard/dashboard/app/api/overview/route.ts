@@ -7,6 +7,16 @@ export const revalidate = 3600; // 🔒 PROTECT TURSO QUOTA: Cache API response 
 export async function GET() {
   try {
     const db = getDb();
+    const cacheKey = 'main';
+
+    // 🟢 QUOTA OPTIMIZATION: Check summaries first
+    const row = await db.get("SELECT data FROM summaries WHERE category = 'overview' AND key = ?", [cacheKey]);
+    if (row) {
+      console.log(`[ACL] Overview cache hit for: ${cacheKey}`);
+      return NextResponse.json(JSON.parse(row.data));
+    }
+
+    console.log(`[ACL] Overview cache miss for: ${cacheKey}. Running raw SQL...`);
 
     // KPI summary from invoice_items
     const kpis = await db.get(`
@@ -82,13 +92,28 @@ export async function GET() {
       LIMIT 5
     `);
 
-    return NextResponse.json({
-      kpis: { ...kpis, ...skuCount },
+    const result = {
+      kpis: { ...kpis, ...skuCount } as any,
       revenueTrend,
       topCustomers: customersWithPct,
       statusBreakdown,
       topSkus,
-    });
+    };
+
+    // 🟢 LAZY MATERIALIZATION: Cache the result
+    try {
+      await db.run(`
+        INSERT INTO summaries (category, key, data, updated_at)
+        VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(category, key) DO UPDATE SET
+          data = excluded.data,
+          updated_at = CURRENT_TIMESTAMP
+      `, ['overview', cacheKey, JSON.stringify(result)]);
+    } catch (err) {
+      console.warn('[ACL] Failed to cache overview summary:', err);
+    }
+
+    return NextResponse.json(result);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: message }, { status: 500 });

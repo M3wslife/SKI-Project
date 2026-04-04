@@ -10,6 +10,17 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const groupBy = searchParams.get('groupBy') || 'day';
 
+    // 🟢 QUOTA OPTIMIZATION: Check summaries first
+    const cacheKey = `main:${groupBy}`;
+    const row = await db.get("SELECT data FROM summaries WHERE category = 'sales' AND key = ?", [cacheKey]);
+    
+    if (row) {
+      console.log(`[ACL] Sales cache hit for: ${cacheKey}`);
+      return NextResponse.json(JSON.parse(row.data));
+    }
+
+    console.log(`[ACL] Sales cache miss for: ${cacheKey}. Running raw SQL...`);
+
     let dateFormat = '%Y-%m-%d';
     if (groupBy === 'month') dateFormat = '%Y-%m';
     else if (groupBy === 'week') dateFormat = '%Y-W%W';
@@ -62,7 +73,22 @@ export async function GET(req: NextRequest) {
       GROUP BY status
     `);
 
-    return NextResponse.json({ timeSeries, topSkus, topCustomers, statusBreakdown });
+    const result = { timeSeries, topSkus, topCustomers, statusBreakdown };
+
+    // 🟢 LAZY MATERIALIZATION: Cache the result
+    try {
+      await db.run(`
+        INSERT INTO summaries (category, key, data, updated_at)
+        VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(category, key) DO UPDATE SET
+          data = excluded.data,
+          updated_at = CURRENT_TIMESTAMP
+      `, ['sales', cacheKey, JSON.stringify(result)]);
+    } catch (err) {
+      console.warn('[ACL] Failed to cache sales summary:', err);
+    }
+
+    return NextResponse.json(result);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: message }, { status: 500 });

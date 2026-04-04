@@ -2,7 +2,6 @@ import './globals.css';
 import type { Metadata } from 'next';
 import Sidebar from '@/components/layout/Sidebar';
 import { SidebarProvider } from '@/components/layout/SidebarContext';
-import UnderDevelopmentOverlay from '@/components/layout/UnderDevelopmentOverlay';
 
 export const metadata: Metadata = {
   title: 'SKI Analytics Dashboard',
@@ -17,7 +16,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="app-shell">
             <Sidebar />
             <div className="main-content">
-              <UnderDevelopmentOverlay />
               {children}
             </div>
           </div>

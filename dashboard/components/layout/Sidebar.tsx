@@ -3,11 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard,
-  TrendingUp,
   FileText,
-  Package,
-  ShoppingBag,
   RefreshCw,
   ChevronLeft,
   ChevronRight,
@@ -17,11 +13,7 @@ import { useState, useEffect } from 'react';
 import { useSidebar } from './SidebarContext';
 
 const navItems = [
-  { href: '/', label: 'Overview', icon: LayoutDashboard },
-  { href: '/sales', label: 'Sales Analytics', icon: TrendingUp },
-  { href: '/profit-and-loss', label: 'Profit & Loss', icon: FileText },
-  { href: '/inventory', label: 'Inventory', icon: Package },
-  { href: '/products', label: 'Products', icon: ShoppingBag },
+  { href: '/', label: 'Profit & Loss', icon: FileText },
 ];
 
 export default function Sidebar() {
