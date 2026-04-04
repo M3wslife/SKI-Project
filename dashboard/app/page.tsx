@@ -171,20 +171,22 @@ export default function ProfitLossPage() {
   useEffect(() => { load(); }, [load]);
 
 
-  const displayedAssignees = (() => {
-    // Default: group small contributors (< 2%) into 'Others'
-    if (assignees.length <= 10) return assignees;
-    const total = summary?.total_revenue || 1;
-    const threshold = total * 0.02; 
-    const top = assignees.filter((a: { name: string; value: number }) => a.value >= threshold);
-    const others = assignees.filter((a: { name: string; value: number }) => a.value < threshold);
-    if (others.length === 0) return assignees;
+  const groupTop10 = (data: { name: string; value: number }[]) => {
+    if (data.length <= 10) return data;
+    const sorted = [...data].sort((a, b) => b.value - a.value);
+    const top = sorted.slice(0, 10);
+    const others = sorted.slice(10);
+    if (others.length === 0) return top;
     
     return [
       ...top,
-      { name: 'Others', value: others.reduce((s: number, a: { name: string; value: number }) => s + a.value, 0) }
-    ].sort((a, b) => b.value - a.value);
-  })();
+      { name: 'Others', value: others.reduce((s, a) => s + a.value, 0) }
+    ];
+  };
+
+  const displayedAssignees = groupTop10(assignees);
+  const displayedShops = groupTop10(shops);
+  const displayedChannels = groupTop10(itemChannels);
 
 
   return (
@@ -310,6 +312,7 @@ export default function ProfitLossPage() {
                 <PieChart onClick={(data: any) => {
                   if (data && data.activePayload && data.activePayload[0]) {
                     const entry = data.activePayload[0].payload;
+                    if (entry.name === 'Others') return;
                     console.log('Pie clicked (Pie):', entry.name);
                     setFilterAssignee(prev => prev === entry.name ? '' : entry.name);
                   }
@@ -326,6 +329,7 @@ export default function ProfitLossPage() {
                     nameKey="name"
                     onClick={(entry: any) => {
                       const name = String(entry?.name ?? '');
+                      if (name === 'Others') return;
                       console.log('Pie clicked (Cell):', name);
                       setFilterAssignee(prev => prev === name ? '' : name);
                     }}
@@ -364,12 +368,13 @@ export default function ProfitLossPage() {
                 <PieChart onClick={(data: any) => {
                   if (data && data.activePayload && data.activePayload[0]) {
                     const entry = data.activePayload[0].payload;
+                    if (entry.name === 'Others') return;
                     setFilterShop(prev => prev === entry.name ? '' : entry.name);
                   }
                 }}>
                   <Tooltip content={<CustomTooltip />} />
                   <Pie
-                    data={shops}
+                    data={displayedShops}
                     cx="50%"
                     cy="50%"
                     innerRadius={isCollapsed ? 95 : 75}
@@ -379,16 +384,18 @@ export default function ProfitLossPage() {
                     nameKey="name"
                     onClick={(entry: any) => {
                       const name = String(entry?.name ?? '');
+                      if (name === 'Others') return;
                       setFilterShop(prev => prev === name ? '' : name);
                     }}
                     className="cursor-pointer"
                   >
-                    {shops.map((entry: any, index: number) => (
+                    {displayedShops.map((entry: any, index: number) => (
                       <Cell 
                         key={`cell-${index}`} 
                         fill={[
-                          '#10b981', '#34d399', '#059669', '#6ee7b7', '#10b981'
-                        ][index % 5]} 
+                          '#10b981', '#34d399', '#059669', '#6ee7b7', '#10b981',
+                          '#047857', '#a7f3d0', '#065f46', '#34d399', '#10b981', '#64748b'
+                        ][index % 11]} 
                         stroke={filterShop === entry.name ? '#fff' : 'none'}
                         strokeWidth={filterShop === entry.name ? 3 : 0}
                         opacity={filterShop && filterShop !== entry.name ? 0.4 : 1}
@@ -415,12 +422,13 @@ export default function ProfitLossPage() {
                 <PieChart onClick={(data: any) => {
                   if (data && data.activePayload && data.activePayload[0]) {
                     const entry = data.activePayload[0].payload;
+                    if (entry.name === 'Others') return;
                     setFilterChannel(prev => prev === entry.name ? '' : entry.name);
                   }
                 }}>
                   <Tooltip content={<CustomTooltip />} />
                   <Pie
-                    data={itemChannels}
+                    data={displayedChannels}
                     cx="50%"
                     cy="50%"
                     innerRadius={isCollapsed ? 95 : 75}
@@ -430,16 +438,18 @@ export default function ProfitLossPage() {
                     nameKey="name"
                     onClick={(entry: any) => {
                       const name = String(entry?.name ?? '');
+                      if (name === 'Others') return;
                       setFilterChannel(prev => prev === name ? '' : name);
                     }}
                     className="cursor-pointer"
                   >
-                    {itemChannels.map((entry: any, index: number) => (
+                    {displayedChannels.map((entry: any, index: number) => (
                       <Cell 
                         key={`cell-${index}`} 
                         fill={[
-                          '#06b6d4', '#22d3ee', '#0891b2', '#67e8f9', '#06b6d4'
-                        ][index % 5]} 
+                          '#06b6d4', '#22d3ee', '#0891b2', '#67e8f9', '#06b6d4',
+                          '#0e7490', '#a5f3fc', '#155e75', '#22d3ee', '#06b6d4', '#64748b'
+                        ][index % 11]} 
                         stroke={filterChannel === entry.name ? '#fff' : 'none'}
                         strokeWidth={filterChannel === entry.name ? 3 : 0}
                         opacity={filterChannel && filterChannel !== entry.name ? 0.4 : 1}

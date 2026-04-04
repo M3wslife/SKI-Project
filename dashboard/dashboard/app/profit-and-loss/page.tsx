@@ -182,6 +182,19 @@ export default function ProfitLossPage() {
   const totalPages = Math.ceil(rows.length / itemsPerPage);
   const pageRows = rows.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
+  const groupTop10 = (data: { name: string; value: number }[]) => {
+    if (data.length <= 10) return data;
+    const sorted = [...data].sort((a, b) => b.value - a.value);
+    const top = sorted.slice(0, 10);
+    const others = sorted.slice(10);
+    if (others.length === 0) return top;
+    
+    return [
+      ...top,
+      { name: 'Others', value: others.reduce((s, a) => s + a.value, 0) }
+    ];
+  };
+
   // Process assignees: group or filter based on search
   const displayedAssignees = (() => {
     if (searchTerm.trim()) {
@@ -189,20 +202,11 @@ export default function ProfitLossPage() {
         a.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
-    // Default: group small contributors (< 2%) into 'Others'
-    if (assignees.length <= 10) return assignees;
-    const total = summary?.total_revenue || 1;
-    const threshold = total * 0.02; 
-    const top = assignees.filter((a: { name: string; value: number }) => a.value >= threshold);
-    const others = assignees.filter((a: { name: string; value: number }) => a.value < threshold);
-    if (others.length === 0) return assignees;
-    
-    return [
-      ...top,
-      { name: 'Others', value: others.reduce((s: number, a: { name: string; value: number }) => s + a.value, 0) }
-    ].sort((a, b) => b.value - a.value);
+    return groupTop10(assignees);
   })();
+
+  const displayedShops = groupTop10(shops);
+  const displayedChannels = groupTop10(itemChannels);
 
   const downloadCSV = () => {
     const header = 'Date,Orders,Revenue (ex-VAT),VAT,Net Amount\n';
@@ -309,8 +313,8 @@ export default function ProfitLossPage() {
                     {displayedAssignees.map((_: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={[
                         '#60a5fa', '#818cf8', '#34d399', '#fbbf24', '#f87171', 
-                        '#22d3ee', '#f472b6', '#a78bfa', '#2dd4bf', '#fb923c'
-                      ][index % 10]} />
+                        '#22d3ee', '#f472b6', '#a78bfa', '#2dd4bf', '#fb923c', '#64748b'
+                      ][index % 11]} />
                     ))}
                   </Pie>
                   <Legend verticalAlign="bottom" height={24} iconSize={8} wrapperStyle={{ fontSize: 10 }} />
@@ -333,7 +337,7 @@ export default function ProfitLossPage() {
                 <PieChart>
                   <Tooltip content={<CustomTooltip />} />
                   <Pie
-                    data={shops}
+                    data={displayedShops}
                     cx="50%"
                     cy={isCollapsed ? "48%" : "50%"}
                     innerRadius={isCollapsed ? 75 : 50}
@@ -342,10 +346,11 @@ export default function ProfitLossPage() {
                     dataKey="value"
                     nameKey="name"
                   >
-                    {shops.map((_: any, index: number) => (
+                    {displayedShops.map((_: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={[
-                        '#10b981', '#34d399', '#059669', '#6ee7b7', '#10b981'
-                      ][index % 5]} />
+                        '#10b981', '#34d399', '#059669', '#6ee7b7', '#10b981',
+                        '#047857', '#a7f3d0', '#065f46', '#34d399', '#10b981', '#64748b'
+                      ][index % 11]} />
                     ))}
                   </Pie>
                   <Legend verticalAlign="bottom" height={24} iconSize={8} wrapperStyle={{ fontSize: 9 }} />
@@ -368,7 +373,7 @@ export default function ProfitLossPage() {
                 <PieChart>
                   <Tooltip content={<CustomTooltip />} />
                   <Pie
-                    data={itemChannels}
+                    data={displayedChannels}
                     cx="50%"
                     cy={isCollapsed ? "48%" : "50%"}
                     innerRadius={isCollapsed ? 75 : 50}
@@ -377,10 +382,11 @@ export default function ProfitLossPage() {
                     dataKey="value"
                     nameKey="name"
                   >
-                    {itemChannels.map((_: any, index: number) => (
+                    {displayedChannels.map((_: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={[
-                        '#06b6d4', '#22d3ee', '#0891b2', '#67e8f9', '#06b6d4'
-                      ][index % 5]} />
+                        '#06b6d4', '#22d3ee', '#0891b2', '#67e8f9', '#06b6d4',
+                        '#0e7490', '#a5f3fc', '#155e75', '#22d3ee', '#06b6d4', '#64748b'
+                      ][index % 11]} />
                     ))}
                   </Pie>
                   <Legend verticalAlign="bottom" height={24} iconSize={8} wrapperStyle={{ fontSize: 9 }} />

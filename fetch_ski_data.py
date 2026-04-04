@@ -37,8 +37,11 @@ def process_hits(hits, conn):
         peak = detail.get('peakInfo', {})
         
         timestamp = hit.get('timestamp')
-        sale_channel = customer.get('group')
-        shop_name = customer.get('branchName')
+        
+        # 🟢 UPDATED MAPPING: Prioritize SALE_ORDER.detail.order.salesChannel
+        # If missing, fallback to existing customer info (group/branchName)
+        sale_channel = order.get('salesChannel') or customer.get('group')
+        shop_name = order.get('salesChannel') or customer.get('branchName')
 
         # Insert Invoice
         cursor.execute("""

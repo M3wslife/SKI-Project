@@ -248,7 +248,7 @@ async function generatePL() {
       args: [periodStart, periodEnd]
     });
 
-    const channelsRes = await client.execute({
+    const channelsRaw = await client.execute({
       sql: `
         SELECT COALESCE(it.sale_channel, 'Other') as name, ROUND(SUM(it.pre_tax_amount), 2) as value
         FROM invoice_items it
@@ -259,18 +259,34 @@ async function generatePL() {
       `,
       args: [periodStart, periodEnd]
     });
+    
+    // Group into Top 10 + Others
+    const topChannels = channelsRaw.rows.slice(0, 10).map(r => ({ name: r.name, value: Number(r.value) }));
+    const otherChannelsValue = channelsRaw.rows.slice(10).reduce((sum, r) => sum + Number(r.value), 0);
+    const channels = topChannels;
+    if (otherChannelsValue > 0) {
+      channels.push({ name: 'Others', value: Math.round(otherChannelsValue * 100) / 100 });
+    }
 
-    const shopsRes = await client.execute({
+    const shopsRaw = await client.execute({
       sql: `
         SELECT COALESCE(it.shop_name, 'Other') as name, ROUND(SUM(it.pre_tax_amount), 2) as value
         FROM invoice_items it
         JOIN invoices i ON it.invoice_id = i.id
         WHERE it.timestamp >= ? AND it.timestamp < ?
         AND i.status NOT IN ('VOIDED')
-        GROUP BY 1 ORDER BY value DESC LIMIT 10
+        GROUP BY 1 ORDER BY value DESC
       `,
       args: [periodStart, periodEnd]
     });
+    
+    // Group into Top 10 + Others
+    const topShops = shopsRaw.rows.slice(0, 10).map(r => ({ name: r.name, value: Number(r.value) }));
+    const otherShopsValue = shopsRaw.rows.slice(10).reduce((sum, r) => sum + Number(r.value), 0);
+    const shops = topShops;
+    if (otherShopsValue > 0) {
+      shops.push({ name: 'Others', value: Math.round(otherShopsValue * 100) / 100 });
+    }
 
     const gradeDataRes = await client.execute({
       sql: `
@@ -288,8 +304,8 @@ async function generatePL() {
       totals, 
       dailyRows: dailyRowsRes.rows, 
       assignees: assigneeBreakdownRes.rows, 
-      channels: channelsRes.rows, 
-      shops: shopsRes.rows, 
+      channels, 
+      shops, 
       gradeData: gradeDataRes.rows 
     };
     await saveSummary('pl', `main:${year}:${month}`, { ...data, years });
@@ -352,7 +368,7 @@ async function generatePL() {
       args: [periodStart, periodEnd]
     });
 
-    const channelsRes = await client.execute({
+    const channelsRaw = await client.execute({
       sql: `
         SELECT COALESCE(it.sale_channel, 'Other') as name, ROUND(SUM(it.pre_tax_amount), 2) as value
         FROM invoice_items it
@@ -363,18 +379,34 @@ async function generatePL() {
       `,
       args: [periodStart, periodEnd]
     });
+    
+    // Group into Top 10 + Others
+    const topChannels = channelsRaw.rows.slice(0, 10).map(r => ({ name: r.name, value: Number(r.value) }));
+    const otherChannelsValue = channelsRaw.rows.slice(10).reduce((sum, r) => sum + Number(r.value), 0);
+    const channels = topChannels;
+    if (otherChannelsValue > 0) {
+      channels.push({ name: 'Others', value: Math.round(otherChannelsValue * 100) / 100 });
+    }
 
-    const shopsRes = await client.execute({
+    const shopsRaw = await client.execute({
       sql: `
         SELECT COALESCE(it.shop_name, 'Other') as name, ROUND(SUM(it.pre_tax_amount), 2) as value
         FROM invoice_items it
         JOIN invoices i ON it.invoice_id = i.id
         WHERE it.timestamp >= ? AND it.timestamp < ?
         AND i.status NOT IN ('VOIDED')
-        GROUP BY 1 ORDER BY value DESC LIMIT 10
+        GROUP BY 1 ORDER BY value DESC
       `,
       args: [periodStart, periodEnd]
     });
+    
+    // Group into Top 10 + Others
+    const topShops = shopsRaw.rows.slice(0, 10).map(r => ({ name: r.name, value: Number(r.value) }));
+    const otherShopsValue = shopsRaw.rows.slice(10).reduce((sum, r) => sum + Number(r.value), 0);
+    const shops = topShops;
+    if (otherShopsValue > 0) {
+      shops.push({ name: 'Others', value: Math.round(otherShopsValue * 100) / 100 });
+    }
 
     const gradeDataRes = await client.execute({
       sql: `
@@ -397,8 +429,8 @@ async function generatePL() {
         orders: r.orders
       })),
       assignees: assigneeBreakdownRes.rows, 
-      channels: channelsRes.rows, 
-      shops: shopsRes.rows, 
+      channels, 
+      shops, 
       gradeData: gradeDataRes.rows 
     };
     // Save as yearly key: main:YEAR:
@@ -445,36 +477,39 @@ async function generatePL() {
   `);
 
   // 4. Channels & Shops (Mixed: invoice_items + Unknown for missing)
-  const knownChannelsRes = await client.execute(`
+  const channelsRaw = await client.execute(`
     SELECT COALESCE(it.sale_channel, 'Other') as name, ROUND(SUM(it.pre_tax_amount), 2) as value
     FROM invoice_items it
     JOIN invoices i ON it.invoice_id = i.id
     WHERE i.status NOT IN ('VOIDED')
-    GROUP BY 1
+    GROUP BY 1 ORDER BY value DESC
   `);
   
-  const knownShopsRes = await client.execute(`
+  const topChannels = channelsRaw.rows.slice(0, 10).map(r => ({ name: r.name, value: Number(r.value) }));
+  const otherChannelsValue = channelsRaw.rows.slice(10).reduce((sum, r) => sum + Number(r.value), 0);
+  const channels = topChannels;
+  if (otherChannelsValue > 0) {
+    channels.push({ name: 'Others', value: Math.round(otherChannelsValue * 100) / 100 });
+  }
+  
+  const shopsRaw = await client.execute(`
     SELECT COALESCE(it.shop_name, 'Other') as name, ROUND(SUM(it.pre_tax_amount), 2) as value
     FROM invoice_items it
     JOIN invoices i ON it.invoice_id = i.id
     WHERE i.status NOT IN ('VOIDED')
-    GROUP BY 1
+    GROUP BY 1 ORDER BY value DESC
   `);
 
-  const knownRevenue = knownChannelsRes.rows.reduce((sum, r) => sum + Number(r.value), 0);
+  const topShops = shopsRaw.rows.slice(0, 10).map(r => ({ name: r.name, value: Number(r.value) }));
+  const otherShopsValue = shopsRaw.rows.slice(10).reduce((sum, r) => sum + Number(r.value), 0);
+  
+  const knownRevenue = topShops.reduce((sum, r) => sum + r.value, 0) + otherShopsValue;
   const missingRevenue = Math.max(0, Number(allTimeTotals.total_revenue) - knownRevenue);
 
-  const channels = [...knownChannelsRes.rows.map(r => ({ name: r.name, value: Number(r.value) }))];
-  if (missingRevenue > 100) {
-    channels.push({ name: 'Legacy/Unknown', value: Math.round(missingRevenue) });
+  const shops = topShops;
+  if (otherShopsValue > 0 || missingRevenue > 100) {
+    shops.push({ name: 'Others', value: Math.round((otherShopsValue + missingRevenue) * 100) / 100 });
   }
-  channels.sort((a, b) => b.value - a.value);
-
-  const shops = [...knownShopsRes.rows.map(r => ({ name: r.name, value: Number(r.value) }))];
-  if (missingRevenue > 100) {
-    shops.push({ name: 'Legacy/Unknown', value: Math.round(missingRevenue) });
-  }
-  shops.sort((a, b) => b.value - a.value);
 
   const allTimeGradeDataRes = await client.execute(`
     SELECT COALESCE(customer_grade, 'N/A') as name, ROUND(SUM(net_amount - vat_amount), 0) as value
@@ -492,8 +527,8 @@ async function generatePL() {
       orders: r.orders 
     })),
     assignees: allTimeAssigneeRes.rows, 
-    channels: channels, 
-    shops: shops.map(r => ({ name: r.name, value: r.value })), 
+    channels, 
+    shops, 
     gradeData: allTimeGradeDataRes.rows,
     years
   };
