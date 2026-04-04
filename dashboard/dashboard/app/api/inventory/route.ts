@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 
-export const revalidate = 3600; // 🔒 PROTECT TURSO QUOTA: Cache API response for 1 hour on Vercel
+export const revalidate = 0; // 🔄 TEMP: Force fresh data after migration
 
 
 export async function GET(req: NextRequest) {
