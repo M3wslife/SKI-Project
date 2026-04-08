@@ -12,21 +12,19 @@ export async function GET(req: NextRequest) {
     const itemCount = await db.get("SELECT COUNT(*) as count FROM invoice_items");
     const summaryCount = await db.get("SELECT COUNT(*) as count FROM summaries");
 
-    // 2. Check Indexes
-    const indexes = await db.all("SELECT * FROM sqlite_master WHERE type = 'index'");
-
-    // 3. Explain Query Plan for a typical filtered query
-    const explainPlan = await db.all(`
-      EXPLAIN QUERY PLAN
-      SELECT * FROM invoice_items it
-      JOIN invoices i ON it.invoice_id = i.id
-      WHERE i.assignee_name = 'วีระชัย'
+    // 2. Check Samples
+    const samples = await db.all("SELECT id, timestamp, status FROM invoices LIMIT 3");
+    
+    // 3. Test Year Filter
+    const test2026 = await db.get(`
+      SELECT COUNT(*) as count FROM invoices i 
+      WHERE strftime('%Y', datetime(i.timestamp/1000, 'unixepoch')) = '2026'
     `);
 
     return NextResponse.json({
       counts: { invoices: invoiceCount.count, items: itemCount.count, summaries: summaryCount.count },
-      indexes,
-      explainPlan
+      samples,
+      test2026
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
