@@ -22,11 +22,9 @@ next-env.d.ts
 /analyze_output.txt
 /analyze_output2.txt
 
-# NOTE: local.db is NOT ignored 
-# as it must be bundled for Vercel deployment.
-/local.db
-
-dashboard/data/local.db
-dashboard/data/local.db.bak
-dashboard/data/local_backup_*.db
-dashboard/data/ski.db
+# NOTE: large databases are synced to Turso, not pushed to Git
+**/local.db
+**/local.db-shm
+**/local.db-wal
+**/*.db.bak
+**/*.db

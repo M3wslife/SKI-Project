@@ -101,11 +101,22 @@ export default function ProfitLossPage() {
   const [filterAssignee, setFilterAssignee] = useState('');
   const [filterShop, setFilterShop] = useState('');
   const [filterChannel, setFilterChannel] = useState('');
+  const [filterStatuses, setFilterStatuses] = useState<string[]>(['BILLING_NOTE', 'PAID', 'PENDING']);
+  const [showStatusFilter, setShowStatusFilter] = useState(false);
 
   const resetFilters = () => {
     setFilterAssignee('');
     setFilterShop('');
     setFilterChannel('');
+    setFilterStatuses(['BILLING_NOTE', 'PAID', 'PENDING']);
+  };
+
+  const toggleStatus = (status: string) => {
+    setFilterStatuses(prev => 
+      prev.includes(status) 
+        ? prev.filter(s => s !== status) 
+        : [...prev, status]
+    );
   };
 
   const load = useCallback(() => {
@@ -116,6 +127,7 @@ export default function ProfitLossPage() {
     if (filterAssignee) params.set('assignee', filterAssignee);
     if (filterShop) params.set('shop', filterShop);
     if (filterChannel) params.set('channel', filterChannel);
+    if (filterStatuses.length > 0) params.set('statuses', filterStatuses.join(','));
 
     fetch(`/api/pl?${params}`)
       .then(async (r) => {
@@ -166,7 +178,7 @@ export default function ProfitLossPage() {
         setError(e.message);
         setLoading(false);
       });
-  }, [year, month, filterAssignee, filterShop, filterChannel]);
+  }, [year, month, filterAssignee, filterShop, filterChannel, filterStatuses]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -194,9 +206,56 @@ export default function ProfitLossPage() {
       <div className="page-header">
         <div>
           <h1>Profit & Loss</h1>
-          <div className="page-title-sub">Revenue, VAT, and net amounts by date</div>
+          <div className="page-title-sub">Revenue, VAT, and net amounts by date — <span className="text-blue-500 font-semibold italic">Line-Item Accuracy</span></div>
         </div>
         <div className="flex-center gap-2">
+          {/* Status Multi-Select Filter */}
+          <div className="relative">
+            <button 
+              className={`filter-select flex items-center gap-2 min-w-[140px] ${filterStatuses.length === 0 ? 'border-red-500/50' : ''}`}
+              onClick={() => setShowStatusFilter(!showStatusFilter)}
+            >
+              <Users size={14} className="text-slate-400" />
+              <span className="flex-1 text-left truncate">
+                {filterStatuses.length === 0 ? 'No Status selected' : 
+                 filterStatuses.length === 4 ? 'All Statuses' : 
+                 `${filterStatuses.length} Status selected`}
+              </span>
+              <Search size={14} className="text-slate-400" />
+            </button>
+            
+            {showStatusFilter && (
+              <div className="absolute top-full right-0 mt-4 w-200 bg-slate-900 border border-slate-700 rounded-lg shadow-xl z-50 p-8">
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest p-8 border-b border-slate-800 mb-8">Filter Status</div>
+                {['BILLING_NOTE', 'PAID', 'PENDING', 'VOIDED'].map(status => (
+                  <label key={status} className="flex items-center gap-10 px-8 py-6 rounded hover:bg-slate-800 cursor-pointer transition-colors">
+                    <input 
+                      type="checkbox" 
+                      className="w-14 h-14 rounded accent-blue-500"
+                      checked={filterStatuses.includes(status)} 
+                      onChange={() => toggleStatus(status)}
+                    />
+                    <span className={`text-xs font-medium ${status === 'VOIDED' ? 'text-red-400' : 'text-slate-300'}`}>
+                      {status.replace('_', ' ')}
+                    </span>
+                  </label>
+                ))}
+                <div className="mt-8 pt-8 border-t border-slate-800 flex justify-end gap-8">
+                  <button 
+                    className="text-[10px] text-blue-400 hover:text-white font-bold"
+                    onClick={() => {
+                       setFilterStatuses(['BILLING_NOTE', 'PAID', 'PENDING', 'VOIDED']);
+                    }}
+                  >ALL</button>
+                  <button 
+                    className="text-[10px] text-slate-400 hover:text-white font-bold"
+                    onClick={() => setShowStatusFilter(false)}
+                  >CLOSE</button>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Year Filter */}
           <select title="Select Year" className="filter-select" value={year} onChange={e => setYear(e.target.value)}>
             <option value="all">All Time</option>
@@ -226,7 +285,7 @@ export default function ProfitLossPage() {
               SYNCING...
             </div>
           )}
-          {(filterAssignee || filterShop || filterChannel) && (
+          {(filterAssignee || filterShop || filterChannel || filterStatuses.length < 3 || filterStatuses.includes('VOIDED')) && (
             <button 
               onClick={resetFilters}
               className="px-12 py-6 rounded-md bg-blue-500/20 border border-blue-500/30 text-blue-400 text-xs font-medium hover:bg-blue-500/30 transition-colors flex items-center gap-2"
@@ -238,8 +297,14 @@ export default function ProfitLossPage() {
       </div>
 
       {/* Filter Status Bar */}
-      {(filterAssignee || filterShop || filterChannel) && (
+      {(filterAssignee || filterShop || filterChannel || filterStatuses.length < 4) && (
         <div className="flex flex-wrap gap-8 mb-16 px-4">
+          {filterStatuses.length < 4 && (
+            <div className="flex items-center gap-6 px-10 py-4 rounded-full bg-slate-800 border border-slate-700 text-[10px] text-slate-300">
+              <span className="opacity-50 uppercase tracking-wider font-bold">Status:</span>
+              <span className="text-amber-400 font-semibold">{filterStatuses.length > 0 ? filterStatuses.join(', ') : 'None'}</span>
+            </div>
+          )}
           {filterAssignee && (
             <div className="flex items-center gap-6 px-10 py-4 rounded-full bg-slate-800 border border-slate-700 text-[10px] text-slate-300">
               <span className="opacity-50 uppercase tracking-wider font-bold">Sales Rep:</span>

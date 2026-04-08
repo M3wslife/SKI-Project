@@ -11,10 +11,10 @@ from datetime import datetime, timedelta
 WFM_URL = os.environ.get('WFM_URL', 'https://open-api.dataslot.app/search/wfm/v1/SKi')
 DB_PATH = os.environ.get('DB_PATH', 'dashboard/data/local.db')
 
-# Default Time Range (Last 30 Days if not specified)
+# Default Time Range: 2026-01-01 to Today
+START_2026 = 1767225600000 # 2026-01-01 00:00:00 UTC
 now = datetime.now()
-thirty_days_ago = now - timedelta(days=30)
-START_TIMESTAMP = int(os.environ.get('START_TIMESTAMP', thirty_days_ago.timestamp() * 1000))
+START_TIMESTAMP = int(os.environ.get('START_TIMESTAMP', START_2026))
 END_TIMESTAMP = int(os.environ.get('END_TIMESTAMP', (now + timedelta(days=1)).timestamp() * 1000))
 
 def init_db():
@@ -50,8 +50,8 @@ def process_hits(hits, conn):
                 timestamp, updated_timestamp, net_amount, vat_amount, 
                 pre_tax_amount, shipping_amount, paid_amount, remaining_amount,
                 customer_name, customer_code, peak_id, peak_code, assignee_name,
-                sale_channel, shop_name
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                sale_channel, shop_name, customer_grade, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             h_id,
             hit.get('taskNumber'),
@@ -73,7 +73,9 @@ def process_hits(hits, conn):
             peak.get('code'),
             (detail.get('assignees') or [{}])[0].get('employeeNumber') if detail.get('assignees') else None,
             sale_channel,
-            shop_name
+            shop_name,
+            customer.get('grade'),
+            detail.get('taskInfo', {}).get('createdDate')
         ))
         # Clear existing items for this invoice to prevent duplication
         cursor.execute("DELETE FROM invoice_items WHERE invoice_id = ?", (h_id,))
@@ -109,47 +111,53 @@ def process_hits(hits, conn):
 
 def fetch_data():
     conn = sqlite3.connect(DB_PATH)
-    page = 1
-    hits_per_page = 100
-    total_fetched = 0
+    workflows = ['INVOICE', 'TAX_INVOICE']
     
-    while True:
-        print(f"Fetching page {page}...")
-        payload = {
-            "hitsPerPage": hits_per_page,
-            "page": page,
-            "filter": [
-                "workflowId = INVOICE",
-                "type = TASK",
-                f"timestamp >= {START_TIMESTAMP}",
-                f"timestamp < {END_TIMESTAMP}"
-            ],
-            "sort": ["timestamp:asc"]
-        }
+    for wf in workflows:
+        page = 1
+        hits_per_page = 100
+        total_fetched_wf = 0
+        print(f"Fetching workflow: {wf}")
         
-        response = requests.post(WFM_URL, json=payload, headers={'Content-Type': 'application/json', 'Accept': 'application/json'})
-        if response.status_code != 200:
-            print(f"Error {response.status_code}: {response.text}")
-            break
+        while True:
+            print(f"  Fetching page {page} for {wf}...")
+            payload = {
+                "hitsPerPage": hits_per_page,
+                "page": page,
+                "filter": [
+                    f"workflowId = {wf}",
+                    "type = TASK",
+                    f"timestamp >= {START_TIMESTAMP}",
+                    f"timestamp < {END_TIMESTAMP}"
+                ],
+                "sort": ["timestamp:desc"]
+            }
             
-        data = response.json()
-        hits = data.get('hits', [])
-        if not hits:
-            break
+            response = requests.post(WFM_URL, json=payload, headers={'Content-Type': 'application/json', 'Accept': 'application/json'})
+            if response.status_code != 200:
+                print(f"  Error {response.status_code}: {response.text}")
+                break
+                
+            data = response.json()
+            hits = data.get('hits', [])
+            if not hits:
+                break
+                
+            process_hits(hits, conn)
+            total_fetched_wf += len(hits)
+            print(f"    Processed {len(hits)} hits (Workflow {wf} Total: {total_fetched_wf})")
             
-        process_hits(hits, conn)
-        total_fetched += len(hits)
-        print(f"  Processed {len(hits)} hits (Total: {total_fetched})")
-        
-        total_pages = data.get('totalPages', 0)
-        if page >= total_pages:
-            break
+            total_pages = data.get('totalPages', 0)
+            if page >= total_pages:
+                break
+                
+            page += 1
+            time.sleep(0.5)
             
-        page += 1
-        time.sleep(0.5) # Gentle rate limiting
+        print(f"Completed {wf}. Total: {total_fetched_wf}")
         
     conn.close()
-    print(f"Data fetch complete. Total records: {total_fetched}")
+    print(f"Data fetch complete for all workflows.")
 
 if __name__ == "__main__":
     init_db()

@@ -18,6 +18,8 @@ export async function GET(req: NextRequest) {
     const assignee = searchParams.get('assignee') || '';
     const shop = searchParams.get('shop') || '';
     const channel = searchParams.get('channel') || '';
+    const statusesParam = searchParams.get('statuses') || ''; // Comma-separated
+    const statuses = statusesParam ? statusesParam.split(',').filter(Boolean) : [];
 
     // 🟢 HYBRID CACHING STRATEGY
     // Construct a canonical cache key
@@ -25,6 +27,7 @@ export async function GET(req: NextRequest) {
     if (assignee) cacheKey += `:filter:assignee:${assignee}`;
     if (shop) cacheKey += `:filter:shop:${shop}`;
     if (channel) cacheKey += `:filter:channel:${channel}`;
+    if (statuses.length > 0) cacheKey += `:filter:statuses:${statuses.sort().join(',')}`;
 
     const cachedRow = await db.get("SELECT data FROM summaries WHERE category = 'pl' AND key = ?", [cacheKey]);
     if (cachedRow) {
@@ -55,35 +58,44 @@ export async function GET(req: NextRequest) {
     const params: any[] = [];
 
     if (year !== 'all') {
-      whereClause += " AND strftime('%Y', datetime(timestamp/1000, 'unixepoch')) = ?";
+      whereClause += " AND strftime('%Y', datetime(i.timestamp/1000, 'unixepoch')) = ?";
       params.push(year);
       if (month) {
-        whereClause += " AND strftime('%m', datetime(timestamp/1000, 'unixepoch')) = ?";
+        whereClause += " AND strftime('%m', datetime(i.timestamp/1000, 'unixepoch')) = ?";
         params.push(month);
       }
     }
 
     if (assignee) {
-      whereClause += " AND assignee_name = ?";
+      whereClause += " AND i.assignee_name = ?";
       params.push(assignee);
     }
     if (shop) {
-      whereClause += " AND shop_name = ?";
+      whereClause += " AND i.shop_name = ?";
       params.push(shop);
     }
     if (channel) {
-      whereClause += " AND sale_channel = ?";
+      whereClause += " AND ii.sale_channel = ?";
       params.push(channel);
+    }
+    if (statuses.length > 0) {
+      const placeholders = statuses.map(() => '?').join(',');
+      whereClause += ` AND i.status IN (${placeholders})`;
+      params.push(...statuses);
+    } else {
+      // DEFAULT: Exclude VOIDED if no status filter is active
+      whereClause += " AND i.status != 'VOIDED'";
     }
 
     // 1. Fetch Totals
     const totals = await db.get(`
       SELECT 
-        COUNT(*) as total_orders,
-        SUM(pre_tax_amount) as total_revenue,
-        SUM(vat_amount) as total_vat,
-        SUM(net_amount) as total_net
-      FROM invoices
+        COUNT(DISTINCT i.id) as total_orders,
+        SUM(ii.pre_tax_amount) as total_revenue,
+        SUM(ii.vat_amount) as total_vat,
+        SUM(ii.net_amount) as total_net
+      FROM invoices i
+      JOIN invoice_items ii ON i.id = ii.invoice_id
       ${whereClause}
     `, params);
 
@@ -100,12 +112,13 @@ export async function GET(req: NextRequest) {
     // 2. Fetch Daily Trend (for 'rows')
     const dailyRows = await db.all(`
       SELECT 
-        date(timestamp/1000, 'unixepoch') as date,
-        COUNT(*) as orders,
-        SUM(pre_tax_amount) as revenue,
-        SUM(vat_amount) as vat_amount,
-        SUM(net_amount) as net_amount
-      FROM invoices
+        date(i.timestamp/1000, 'unixepoch') as date,
+        COUNT(DISTINCT i.id) as orders,
+        SUM(ii.pre_tax_amount) as revenue,
+        SUM(ii.vat_amount) as vat_amount,
+        SUM(ii.net_amount) as net_amount
+      FROM invoices i
+      JOIN invoice_items ii ON i.id = ii.invoice_id
       ${whereClause}
       GROUP BY date
       ORDER BY date ASC
@@ -113,38 +126,42 @@ export async function GET(req: NextRequest) {
 
     // 3. Distribution: Assignees
     const assignees = await db.all(`
-      SELECT assignee_name as name, SUM(pre_tax_amount) as value
-      FROM invoices
+      SELECT i.assignee_name as name, SUM(ii.pre_tax_amount) as value
+      FROM invoices i
+      JOIN invoice_items ii ON i.id = ii.invoice_id
       ${whereClause}
-      GROUP BY assignee_name
+      GROUP BY i.assignee_name
       ORDER BY value DESC
     `, params);
 
     // 4. Distribution: Shops
     const shops = await db.all(`
-      SELECT shop_name as name, SUM(pre_tax_amount) as value
-      FROM invoices
+      SELECT i.shop_name as name, SUM(ii.pre_tax_amount) as value
+      FROM invoices i
+      JOIN invoice_items ii ON i.id = ii.invoice_id
       ${whereClause}
-      GROUP BY shop_name
+      GROUP BY i.shop_name
       ORDER BY value DESC
     `, params);
 
     // 5. Distribution: Channels
     const channels = await db.all(`
-      SELECT sale_channel as name, SUM(pre_tax_amount) as value
-      FROM invoices
+      SELECT ii.sale_channel as name, SUM(ii.pre_tax_amount) as value
+      FROM invoices i
+      JOIN invoice_items ii ON i.id = ii.invoice_id
       ${whereClause}
-      GROUP BY sale_channel
+      GROUP BY ii.sale_channel
       ORDER BY value DESC
     `, params);
 
     // 6. Monthly Trend
     const monthlyData = await db.all(`
       SELECT 
-        strftime('%Y-%m', datetime(timestamp/1000, 'unixepoch')) as month,
-        SUM(pre_tax_amount) as revenue,
-        COUNT(*) as orders
-      FROM invoices
+        strftime('%Y-%m', datetime(i.timestamp/1000, 'unixepoch')) as month,
+        SUM(ii.pre_tax_amount) as revenue,
+        COUNT(DISTINCT i.id) as orders
+      FROM invoices i
+      JOIN invoice_items ii ON i.id = ii.invoice_id
       ${whereClause}
       GROUP BY month
       ORDER BY month ASC
@@ -152,10 +169,11 @@ export async function GET(req: NextRequest) {
 
     // 7. Grade Data
     const gradeData = await db.all(`
-      SELECT customer_grade as name, SUM(pre_tax_amount) as value
-      FROM invoices
+      SELECT i.customer_grade as name, SUM(ii.pre_tax_amount) as value
+      FROM invoices i
+      JOIN invoice_items ii ON i.id = ii.invoice_id
       ${whereClause}
-      GROUP BY customer_grade
+      GROUP BY i.customer_grade
       ORDER BY value DESC
     `, params);
 
